@@ -1,7 +1,7 @@
-package manager
+package manger;
 
 import domain.Preparation;
-import domain.FinalQuantutyUnit;
+import domain.FinalQuantityUnit;
 import validation.PreparationValidator;
 import java.time.Instant;
 import java.util.*;
@@ -11,7 +11,7 @@ public class PreparationManager {
     private long nextId = 1;
     public Preparation addPreparation(long solutionId,
                                       double finalQuantity,
-                                      FinalquantityUnit finalUnit,
+                                      FinalQuantityUnit finalUnit,
                                       String comment,
                                       String ownerUsername,
                                       Instant preparedAt) {
@@ -19,7 +19,7 @@ public class PreparationManager {
         PreparationValidator.validate(preparation);
         preparation.setId(nextId++);
         preparation.setCreatedAt(Instant.now());
-        preparation.setUpdatedAt(Instant.now())
+        preparation.setUpdatedAt(Instant.now());
         preparations.put(preparation.getId(), preparation);
 return preparation;
     }
@@ -49,7 +49,7 @@ return preparation;
 
     public List<Preparation> getPreparationsForSolution(Long solutionId) {
         List<Preparation> result = new ArrayList<>();
-        for (preparation p : preparations.values()) {
+        for (Preparation p : preparations.values()) {
             if (p.getSolutionId() == solutionId) {
                 result.add(p);
             }
