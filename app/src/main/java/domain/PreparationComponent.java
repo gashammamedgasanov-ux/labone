@@ -1,15 +1,15 @@
 package domain;
 import java.time.Instant;
-public class PreporationComponent {
+public class PreparationComponent {
     private long id;
-    private long preporationId;
+    private long preparationId;
     private long batchId;
     private double quantity;
     private ComponentUnit unit;
     private Instant createdAt;
 
-    public PreporationComponent(long preporationId, long batchId, double quantity, ComponentUnit unit) {
-        this.preporationId = preporationId;
+    public PreparationComponent(long preporationId, long batchId, double quantity, ComponentUnit unit) {
+        this.preparationId = preporationId;
         this.batchId = batchId;
         this.quantity = quantity;
         this.unit = unit;
@@ -20,8 +20,8 @@ public class PreporationComponent {
     public long getId() {
         return id;
     }
-    public long getPreporationId() {
-        return preporationId;
+    public long getPreparationId() {
+        return preparationId;
     }
     public long getBatchId() {
         return batchId;
@@ -39,8 +39,8 @@ public class PreporationComponent {
     public void setId(long id) {
         this.id = id;
     }
-    public void setPreporationId(long preporationId) {
-        this.preporationId = preporationId;
+    public void setPreparationId(long preporationId) {
+        this.preparationId = preporationId;
     }
     public void setBatchId(long batchId) {
         this.batchId = batchId;
