@@ -1,7 +1,7 @@
 package domain;
 import java.time.Instant;
-public class Solution {
-    // Поля (fields)
+public final class Solution {
+    // Поля
     private Long id;
     private String name;
     private double concentration;
@@ -11,12 +11,13 @@ public class Solution {
     private Instant createdAt;
     private Instant updatedAt;
 
-
+//ну вот здесь конструктор
     public Solution(String name,
                     double concentration,
                     SolutionConcentrationUnit concentrationUnit,
                     String solvent,
-                    String ownerUsername) {
+                    String ownerUsername)
+    {
         this.name = name;
         this.concentration = concentration;
         this.concentrationUnit = concentrationUnit;
@@ -24,7 +25,7 @@ public class Solution {
         this.ownerUsername = ownerUsername;
     }
 
-
+// это геттеры
     public Long getId() {
         return id;
     }
@@ -57,7 +58,7 @@ public class Solution {
         return updatedAt;
     }
 
-
+    //А это сеттеры мяу
     public void setId(Long id) {
         this.id = id;
     }
