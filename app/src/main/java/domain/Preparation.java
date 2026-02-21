@@ -10,7 +10,7 @@ public class Preparation {
     private String ownerUsername;
     private Instant preparedAt;
     private Instant createdAt;
-    private Instant updatedAt
+    private Instant updatedAt;
 
     public Preparation(long solutionId, double finalQuantity, FinalQuantityUnit finalUnit,
                        String comment, String ownerUsername, Instant preparedAt) {
