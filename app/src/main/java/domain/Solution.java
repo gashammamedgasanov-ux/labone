@@ -1,12 +1,92 @@
 package domain;
-
+import java.time.Instant;
 public class Solution {
-    private long id;
+    // Поля (fields)
+    private Long id;
     private String name;
-    private double correction;
+    private double concentration;
     private SolutionConcentrationUnit concentrationUnit;
     private String solvent;
     private String ownerUsername;
-    private String createdAt;
-    private String updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
+
+
+    public Solution(String name,
+                    double concentration,
+                    SolutionConcentrationUnit concentrationUnit,
+                    String solvent,
+                    String ownerUsername) {
+        this.name = name;
+        this.concentration = concentration;
+        this.concentrationUnit = concentrationUnit;
+        this.solvent = solvent;
+        this.ownerUsername = ownerUsername;
+    }
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getConcentration() {
+        return concentration;
+    }
+
+    public SolutionConcentrationUnit getConcentrationUnit() {
+        return concentrationUnit;
+    }
+
+    public String getSolvent() {
+        return solvent;
+    }
+
+    public String getOwnerUsername() {
+        return ownerUsername;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setConcentration(double concentration) {
+        this.concentration = concentration;
+    }
+
+    public void setConcentrationUnit(SolutionConcentrationUnit concentrationUnit) {
+        this.concentrationUnit = concentrationUnit;
+    }
+
+    public void setSolvent(String solvent) {
+        this.solvent = solvent;
+    }
+
+    public void setOwnerUsername(String ownerUsername) {
+        this.ownerUsername = ownerUsername;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }
