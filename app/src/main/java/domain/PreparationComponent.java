@@ -8,12 +8,12 @@ public class PreparationComponent {
     private ComponentUnit unit;
     private Instant createdAt;
 
-    public PreparationComponent(long preporationId, long batchId, double quantity, ComponentUnit unit) {
-        this.preparationId = preporationId;
+    public PreparationComponent(long preparationId, long batchId, double quantity, ComponentUnit unit) {
+        this.preparationId = preparationId;
         this.batchId = batchId;
         this.quantity = quantity;
         this.unit = unit;
-
+        this.createdAt = Instant.now();
     }
 
     // getters ))

@@ -13,7 +13,7 @@ public class SolutionValidation {
         if (solution.getConcentration()<0){
             throw new IllegalArgumentException("Концентрация не должна быть отрицательной");
         }
-        if (solution.getSolvent().length()>64){
+        if (solution.getSolvent()!=null&&solution.getSolvent().length()>64){
             throw new IllegalArgumentException("Название растворителя слишком длинное(должно быть не более 64 символов)");
         }
     }
