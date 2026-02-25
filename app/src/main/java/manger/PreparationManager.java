@@ -9,6 +9,7 @@ import java.util.*;
 public class PreparationManager {
     private final Map<Long, Preparation> preparations = new HashMap<>();
     private long nextId = 1;
+    //метод для команды prep_add
     public Preparation addPreparation(long solutionId,
                                       double finalQuantity,
                                       FinalQuantityUnit finalUnit,
@@ -40,13 +41,14 @@ return preparation;
         return preparations.containsKey(id);
     }
 
+    //метод для команды prep_delete
     public void removePreparation(Long id) {
         if (!preparations.containsKey(id)) {
             throw new IllegalArgumentException("Приготовление с id=" + id + " не найдено");
         }
         preparations.remove(id);
     }
-
+//метолд для команды prep_show
     public List<Preparation> getPreparationsForSolution(Long solutionId) {
         List<Preparation> result = new ArrayList<>();
         for (Preparation p : preparations.values()) {
@@ -55,5 +57,25 @@ return preparation;
             }
         }
         return result;
+    }
+//метод для команды prep_update
+    public void updatePreparation(Long id,
+                                  Double newFinalQuantity,
+                                  FinalQuantityUnit newFinalUnit,
+                                  String newComment) {
+        Preparation existing = getPreparation(id);  // throws if not found
+        Preparation draft = new Preparation(
+                existing.getSolutionId(),
+                newFinalQuantity != null ? newFinalQuantity : existing.getFinalQuantity(),
+                newFinalUnit != null ? newFinalUnit : existing.getFinalUnit(),
+                newComment != null ? newComment : existing.getComment(),
+                existing.getOwnerUsername(),
+                existing.getPreparedAt()  // дата приготовления не меняется
+        );
+        PreparationValidator.validate(draft);
+        if (newFinalQuantity != null) existing.setFinalQuantity(newFinalQuantity);
+        if (newFinalUnit != null) existing.setFinalUnit(newFinalUnit);
+        if (newComment != null) existing.setComment(newComment);
+        existing.setUpdatedAt(Instant.now());
     }
 }
