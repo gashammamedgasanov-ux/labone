@@ -1,7 +1,7 @@
-package manger;
+package manager;
 
-import domain.PreparationComponent;
-import domain.ComponentUnit;
+import domain.entity.PreparationComponent;
+import domain.enums.ComponentUnit;
 import validation.PreparationComponentValidation;
 
 import java.time.Instant;

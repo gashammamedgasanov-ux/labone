@@ -1,38 +1,29 @@
-package domain;
+package domain.entity;
+
+import domain.enums.FinalQuantityUnit;
+
 import java.time.Instant;
 
-public class Preparation {
-    private long id;
+public class Preparation extends BaseEntity {
     private long solutionId;
     private double finalQuantity;
     private FinalQuantityUnit finalUnit;
     private String comment;
     private String ownerUsername;
     private Instant preparedAt;
-    private Instant createdAt;
-    private Instant updatedAt;
 
     public Preparation(long solutionId, double finalQuantity, FinalQuantityUnit finalUnit,
                        String comment, String ownerUsername, Instant preparedAt) {
+        super();
         this.solutionId = solutionId;
         this.finalQuantity = finalQuantity;
         this.finalUnit = finalUnit;
         this.comment = comment;
         this.ownerUsername = ownerUsername;
         this.preparedAt = (preparedAt != null) ? preparedAt : Instant.now();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
     }
 
     public Preparation() {
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public long getSolutionId() {
@@ -82,21 +73,4 @@ public class Preparation {
     public void setPreparedAt(Instant preparedAt) {
         this.preparedAt = preparedAt;
     }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
 }

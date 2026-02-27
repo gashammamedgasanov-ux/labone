@@ -1,7 +1,7 @@
-package manger;
+package manager;
 
-import domain.Solution;
-import domain.SolutionConcentrationUnit;
+import domain.entity.Solution;
+import domain.enums.SolutionConcentrationUnit;
 import validation.SolutionValidation;
 
 import java.util.Collections;
@@ -14,7 +14,7 @@ public class SolutionManager {
     private long nextId = 1;
 
     //метод для команды sol_add
-    public Solution addSolution(String name, double concentration, SolutionConcentrationUnit concentrationUnit, String solvent, String ownerUsername) throws IllegalAccessException {
+    public Solution addSolution(String name, double concentration, SolutionConcentrationUnit concentrationUnit, String solvent, String ownerUsername) throws IllegalArgumentException  {
         Solution solution = new Solution(name, concentration, concentrationUnit, solvent, ownerUsername);
         SolutionValidation.validate(solution);
         solution.setId(nextId++);
@@ -31,7 +31,8 @@ public class SolutionManager {
         }
         return solutions.get(id);
     }
-// метод для команды sol_list
+
+    // метод для команды sol_list
     public Map<Long, Solution> getAll() {
         return Collections.unmodifiableMap(solutions);
     }
@@ -61,6 +62,5 @@ public class SolutionManager {
         }
         solutions.remove(id);
     }
-
-
 }
+

@@ -1,14 +1,16 @@
-package manger;
+package manager;
 
-import domain.Preparation;
-import domain.FinalQuantityUnit;
+import domain.entity.Preparation;
+import domain.enums.FinalQuantityUnit;
 import validation.PreparationValidator;
+
 import java.time.Instant;
 import java.util.*;
 
 public class PreparationManager {
     private final Map<Long, Preparation> preparations = new HashMap<>();
     private long nextId = 1;
+
     //метод для команды prep_add
     public Preparation addPreparation(long solutionId,
                                       double finalQuantity,
@@ -22,7 +24,7 @@ public class PreparationManager {
         preparation.setCreatedAt(Instant.now());
         preparation.setUpdatedAt(Instant.now());
         preparations.put(preparation.getId(), preparation);
-return preparation;
+        return preparation;
     }
 
     public Preparation getPreparation(Long id) {
@@ -37,7 +39,7 @@ return preparation;
         return Collections.unmodifiableCollection(preparations.values());
     }
 
-    public  boolean exists(Long id) {
+    public boolean exists(Long id) {
         return preparations.containsKey(id);
     }
 
@@ -48,7 +50,8 @@ return preparation;
         }
         preparations.remove(id);
     }
-//метолд для команды prep_show
+
+    //метолд для команды prep_show
     public List<Preparation> getPreparationsForSolution(Long solutionId) {
         List<Preparation> result = new ArrayList<>();
         for (Preparation p : preparations.values()) {
@@ -58,7 +61,8 @@ return preparation;
         }
         return result;
     }
-//метод для команды prep_update
+
+    //метод для команды prep_update
     public void updatePreparation(Long id,
                                   Double newFinalQuantity,
                                   FinalQuantityUnit newFinalUnit,

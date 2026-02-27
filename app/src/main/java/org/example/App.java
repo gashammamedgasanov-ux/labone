@@ -3,12 +3,19 @@
  */
 package org.example;
 
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+import cli.ComandLineInterface;
+import manager.BatchService;
+import manager.PreparationComponentManager;
+import manager.PreparationManager;
+import manager.SolutionManager;
 
+public class App {
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        SolutionManager solutionManager= new SolutionManager();
+        PreparationManager preparationManager= new PreparationManager();
+        BatchService batchService= new BatchService();
+        PreparationComponentManager preparationComponentManager= new PreparationComponentManager(preparationManager,batchService);
+        ComandLineInterface cli = new ComandLineInterface(preparationManager, preparationComponentManager,solutionManager);
+        cli.start();
     }
 }

@@ -1,5 +1,6 @@
 package validation;
-import domain.Preparation;
+
+import domain.entity.Preparation;
 
 public class PreparationValidator {
     public static void validate(Preparation preparation) {
