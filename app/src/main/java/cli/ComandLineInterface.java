@@ -58,6 +58,9 @@ public class ComandLineInterface {
         System.out.println("prep_add - создает факт приготовления");
         System.out.println("prep_show - выводит данные о приготовлении");
         System.out.println("prep_list - выводит список приготовлений");
+        System.out.println("comp_add - добавляет компонент приготовления");
+        System.out.println("prep_update - обновляет данные о приготовлениях " );
+        System.out.println("comp_list - выводит список компонентов приготовления, по его Id");
     }
 
 
@@ -91,7 +94,15 @@ public class ComandLineInterface {
                 case "prep_delete":
                     prepDelete();
                     break;
-
+                case "comp_add":
+                    compAdd();
+                    break;
+                case "comp_list":
+                    compList();
+                    break;
+                case "prep_update":
+                    prepUpdate();
+                    break;
                 default:
                     System.out.println("Такой команды нет, введите help для списка команд");
             }
@@ -227,5 +238,76 @@ public class ComandLineInterface {
         System.out.println("Приготовление удалено");
     }
 
-    //аня вставляй сюда команды
+    private void compAdd(){
+        System.out.println("Введите Id приготовления:" );
+        long id = Long.parseLong(scanner.nextLine().trim());
+        Preparation prep = preparationManager.getPreparation(id);
+
+        System.out.println("Введите Id партии (от 1 до 100): ");
+        long idb = Long.parseLong(scanner.nextLine().trim());
+
+        System.out.println("Введите количество вещества: ");
+        double quantity = Double.parseDouble(scanner.nextLine().trim());
+
+        System.out.println("Введите единицы измерения количества вещества(G, ML)");
+        String componentUnit = scanner.nextLine().trim().toUpperCase();
+        ComponentUnit comUnit = ComponentUnit.valueOf(componentUnit);
+
+        try {
+            PreparationComponent comp = preparationComponentManager.addComponent(id,idb, quantity,comUnit );
+        } catch (IllegalAccessException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+        System.out.println("Данные введены");
+    }
+
+    private void compList(){
+        System.out.println("Введите Id приготовления:" );
+        long id = Long.parseLong(scanner.nextLine().trim());
+        Preparation prep = preparationManager.getPreparation(id);
+        List<PreparationComponent> comp = preparationComponentManager.getComponentsForPreparation(id);
+        for (PreparationComponent component : comp) {
+            System.out.println("ID: " + component.getId());
+            System.out.println("ID партии: " + component.getBatchId());
+            System.out.println("Количества вещества: " + component.getQuantity() + " "+ component.getUnit());
+        }
+    }
+
+    private void prepUpdate(){
+        System.out.println("Введите id приготовления,которое хотите обновить");
+        long id = Long.parseLong(scanner.nextLine().trim());
+        PreparationManager prep = preparationManager;
+
+        System.out.println("Новая масса или обьем");
+        String input = scanner.nextLine().trim();
+        Double newFinalQuantity = null;
+        if (!input.isEmpty()){
+            newFinalQuantity = Double.parseDouble(input);
+        }
+
+
+        System.out.println("Новые единицы измерения :");
+        String inputt =scanner.nextLine().trim().toUpperCase();
+        FinalQuantityUnit newFinalUnit = null;
+        if(!inputt.isEmpty()){
+            try{
+                newFinalUnit = FinalQuantityUnit.valueOf(inputt);
+            }catch (IllegalArgumentException e){}
+
+        }
+
+        System.out.println("Новый коментарий:" );
+        String inpu = scanner.nextLine().trim().toUpperCase();
+        String newComment = null;
+        if(!inpu.isEmpty()){
+            newComment = inpu;
+        }
+
+        try {
+            prep.updatePreparation(id, newFinalQuantity, newFinalUnit, newComment);
+        }catch (IllegalArgumentException e) {
+            System.out.println("Ошибка : " + e.getMessage());
+        }
+        System.out.println("Данные обновленны");
+    }
 }
