@@ -23,7 +23,7 @@ public class Preparation extends BaseEntity {
         this.preparedAt = (preparedAt != null) ? preparedAt : Instant.now();
     }
 
-    public Preparation() {
+    public Preparation(long id, long solutionId, Instant createdAt, String ownerUsername) {
     }
 
     public long getSolutionId() {

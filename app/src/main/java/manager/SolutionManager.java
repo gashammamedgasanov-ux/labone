@@ -63,4 +63,3 @@ public class SolutionManager {
         solutions.remove(id);
     }
 }
-

@@ -6,8 +6,12 @@ public enum SolutionConcentrationUnit {
     G_PER_L("грамм/литр");
 
     private final String newName;
-    private SolutionConcentrationUnit(String newName) {
+    SolutionConcentrationUnit(String newName) {
         this.newName = newName;
     }
 
+    @Override
+    public String toString() {
+        return newName;
     }
+}
