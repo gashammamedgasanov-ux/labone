@@ -95,7 +95,7 @@ public class ComandLineInterface {
                     prepShow(args);
                     break;
                 case "prep_list":
-                    prepList();
+                    prepList(args);
                     break;
                 case "prep_delete":
                     if (args.isEmpty()) throw new IllegalArgumentException("Укажите ID приготовления");
@@ -259,20 +259,66 @@ public class ComandLineInterface {
         System.out.println("Комментарий: " + prep.getComment());
     }
 //исправить по флагам
-    private void prepList() {
-        Collection<Preparation> all = preparationManager.getAllPreparations();
-        if (all.isEmpty()) {
-            System.out.println("Нет приготовлений, добавьте их с помощью команды prep_add");
-            return;
+private void prepList(String args) {
+    String[] tokens = args.trim().split("\\s+");
+    if (tokens.length == 0 || tokens[0].isEmpty()) {
+        throw new IllegalArgumentException("Укажите ID раствора");
+    }
+
+    long solutionId;
+    try {
+        solutionId = Long.parseLong(tokens[0]);
+    } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("ID раствора должен быть числом");
+    }
+
+    Solution solution = solutionManager.getSolution(solutionId);
+    if (solution == null) {
+        throw new IllegalArgumentException("Раствор с id=" + solutionId + " не найден");
+    }
+
+    int last = -1;
+    for (int i = 1; i < tokens.length; i++) {
+        if (tokens[i].equals("--last")) {
+            if (i + 1 >= tokens.length) {
+                throw new IllegalArgumentException("После --last нужно указать число");
+            }
+            try {
+                last = Integer.parseInt(tokens[i + 1]);
+                if (last <= 0) {
+                    throw new IllegalArgumentException("Число после --last должно быть положительным");
+                }
+                i++;
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("После --last должно быть целое число");
+            }
+        } else {
+            throw new IllegalArgumentException("Неизвестная опция: " + tokens[i]);
         }
-        System.out.println("Список приготовлений");
-        for (Preparation preparation : all) {
-            System.out.println("ID: " + preparation.getId());
-            System.out.println("ID раствора: " + preparation.getSolutionId());
-            System.out.println("Масса или обьем: " + preparation.getFinalQuantity() + " " + preparation.getFinalUnit());
-            System.out.println("Имя пользователя:  " + preparation.getOwnerUsername());
-            System.out.println("Дата создания:  " + preparation.getCreatedAt());
-            System.out.println("Комментарий: " + preparation.getComment());
+    }
+
+    List<Preparation> preparations = preparationManager.getLastPreparationsForSolution(solutionId, last);
+
+    if (preparations.isEmpty()) {
+        System.out.println("Для данного раствора нет приготовлений");
+        return;
+    }
+
+    System.out.println("ID   FinalQty Unit Time                Comment");
+    for (Preparation p : preparations) {
+        String timeStr = "-";
+        if (p.getPreparedAt() != null) {
+            String full = p.getPreparedAt().toString().replace("T", " ");
+            timeStr = full.length() >= 16 ? full.substring(0, 16) : full;
+        }
+        String comment = (p.getComment() != null && !p.getComment().isEmpty()) ? p.getComment() : "-";
+        String unit = p.getFinalUnit().toString().toLowerCase();
+        System.out.printf("%-4d %-8.0f %-4s %-19s %s%n",
+                p.getId(),
+                p.getFinalQuantity(),
+                unit,
+                timeStr,
+                comment);
         }
     }
 
@@ -326,6 +372,7 @@ public class ComandLineInterface {
             System.out.println("Количества вещества: " + component.getQuantity() + " " + component.getUnit());
         }
     }
+
 //изменить по методичке!!!!!!!
 private void prepUpdate(String args) {
     // Разбиваем аргументы команды
