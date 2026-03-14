@@ -9,18 +9,18 @@ import domain.enums.SolutionConcentrationUnit;
 import manager.PreparationComponentManager;
 import manager.PreparationManager;
 import manager.SolutionManager;
+import validation.PreparationComponentValidation;
+import validation.PreparationValidator;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class ComandLineInterface {
     private PreparationManager preparationManager;
     private PreparationComponentManager preparationComponentManager;
     private SolutionManager solutionManager;
     private Scanner scanner;
+    private PreparationComponentValidation PreparationValidation;
 
     public ComandLineInterface(PreparationManager preparationManager,
                                PreparationComponentManager preparationComponentManager,
@@ -258,7 +258,7 @@ public class ComandLineInterface {
         System.out.println("Дата создания:  " + prep.getCreatedAt());
         System.out.println("Комментарий: " + prep.getComment());
     }
-
+//исправить по флагам
     private void prepList() {
         Collection<Preparation> all = preparationManager.getAllPreparations();
         if (all.isEmpty()) {
@@ -326,32 +326,137 @@ public class ComandLineInterface {
             System.out.println("Количества вещества: " + component.getQuantity() + " " + component.getUnit());
         }
     }
+//изменить по методичке!!!!!!!
+private void prepUpdate(String args) {
+    // Разбиваем аргументы команды
+    String[] parts = args.split(" ", 2);
 
-    private void prepUpdate(String idStr) {
-        long id = Long.parseLong(idStr);
-        if (preparationManager.getPreparation(id) == null) {
-            throw new IllegalArgumentException("Приготовление с id=" + id + " не найдено");
+    // Проверяем, что есть хотя бы ID
+    if (parts.length < 1 || parts[0].isEmpty()) {
+        throw new IllegalArgumentException("Укажите ID приготовления");
+    }
+
+    // Парсим ID
+    long id;
+    try {
+        id = Long.parseLong(parts[0]);
+    } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("ID должен быть числом");
+    }
+
+    // Проверяем, есть ли поля для обновления
+    if (parts.length < 2 || parts[1].trim().isEmpty()) {
+        throw new IllegalArgumentException("Использование: prep_update <id> field=value ...");
+    }
+
+    Preparation preparation = preparationManager.getPreparation(id);
+    if (preparation == null) {
+        throw new IllegalArgumentException("Приготовление с id=" + id + " не найдено");
+    }
+
+    // Создаем временную копию для валидации с ВСЕМИ полями
+    Preparation updatedPreparation = new Preparation(
+            preparation.getId(),
+            preparation.getSolutionId(),
+            preparation.getCreatedAt(),
+            preparation.getOwnerUsername()  // ВАЖНО!
+    );
+
+    // Копируем текущие значения
+    updatedPreparation.setFinalQuantity(preparation.getFinalQuantity());
+    updatedPreparation.setFinalUnit(preparation.getFinalUnit());
+    updatedPreparation.setComment(preparation.getComment());
+
+    // Парсим остальные аргументы с учетом кавычек
+    String argsPart = parts[1].trim();
+    List<String> assignments = parseArguments(argsPart);
+
+    for (String assignment : assignments) {
+        String[] keyValue = assignment.split("=", 2);
+        if (keyValue.length != 2) {
+            throw new IllegalArgumentException("Неверный формат: " + assignment + ". Ожидается field=value");
         }
-        System.out.println("Новая масса или обьем");
-        String input = scanner.nextLine().trim();
-        Double newFinalQuantity = input.isEmpty() ? null : Double.parseDouble(input);
-        System.out.print("Новые единицы измерения: ");
-        String inputUnit = scanner.nextLine().trim().toUpperCase();
-        FinalQuantityUnit newFinalUnit = null;
-        if (!input.isEmpty()) {
-            try {
-                newFinalUnit = FinalQuantityUnit.valueOf(inputUnit);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Недопустимая единица измерения");
+
+        String field = keyValue[0].trim();
+        String value = keyValue[1].trim();
+
+        switch (field) {
+            case "finalQuantity":
+                if (value.isEmpty()) {
+                    throw new IllegalArgumentException("finalQuantity не может быть пустым");
+                }
+                try {
+                    updatedPreparation.setFinalQuantity(Double.parseDouble(value));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("finalQuantity должно быть числом");
+                }
+                break;
+
+            case "finalUnit":
+                if (value.isEmpty()) {
+                    throw new IllegalArgumentException("finalUnit не может быть пустым");
+                }
+                try {
+                    updatedPreparation.setFinalUnit(FinalQuantityUnit.valueOf(value.toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Недопустимая единица измерения. Допустимые: ML, L, G, MG");
+                }
+                break;
+
+            case "comment":
+                updatedPreparation.setComment(value.isEmpty() ? null : value);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Неизвестное поле: " + field +
+                        ". Допустимые поля: finalQuantity, finalUnit, comment");
+        }
+    }
+
+    // Валидируем обновленное приготовление
+    try {
+        PreparationValidator.validate(updatedPreparation);
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Ошибка валидации: " + e.getMessage());
+    }
+
+    // Обновляем приготовление
+    preparationManager.updatePreparation(
+            id,
+            updatedPreparation.getFinalQuantity(),
+            updatedPreparation.getFinalUnit(),
+            updatedPreparation.getComment()
+    );
+
+    System.out.println("Приготовление с id=" + id + " обновлено");
+}
+
+    // Метод для парсинга с кавычками
+    private List<String> parseArguments(String args) {
+        List<String> result = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (int i = 0; i < args.length(); i++) {
+            char c = args.charAt(i);
+
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            } else if (c == ' ' && !inQuotes) {
+                if (current.length() > 0) {
+                    result.add(current.toString());
+                    current = new StringBuilder();
+                }
+            } else {
+                current.append(c);
             }
         }
 
-        System.out.println("Новый коментарий:");
-        String newComment = scanner.nextLine().trim();
-        if (newComment.isEmpty()) newComment = null;
+        if (current.length() > 0) {
+            result.add(current.toString());
+        }
 
-        preparationManager.updatePreparation(id, newFinalQuantity, newFinalUnit, newComment);
-        System.out.println("Данные обновлены");
+        return result;
     }
 
     private void compAdd(String preparationIdStr) {
