@@ -82,4 +82,22 @@ public class PreparationManager {
         if (newComment != null) existing.setComment(newComment);
         existing.setUpdatedAt(Instant.now());
     }
+
+    public List<Preparation> getLastPreparationsForSolution(long solutionId, int limit) {
+        //получаем все приготовления для раствора
+        List<Preparation> result = getPreparationsForSolution(solutionId);
+
+        //ортируем полученный список приготовлений по убыванию даты приготовления
+        result.sort((p1, p2) -> {
+            if (p1.getPreparedAt() == null && p2.getPreparedAt() == null) return 0;
+            if (p1.getPreparedAt() == null) return 1;
+            if (p2.getPreparedAt() == null) return -1;
+            return p2.getPreparedAt().compareTo(p1.getPreparedAt());
+        });
+
+        if (limit > 0 && limit < result.size()) {
+            return result.subList(0, limit);
+        }
+        return result;
+    }
 }
