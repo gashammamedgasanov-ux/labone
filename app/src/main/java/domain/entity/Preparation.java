@@ -12,6 +12,10 @@ public class Preparation extends BaseEntity {
     private String ownerUsername;
     private Instant preparedAt;
 
+    public Preparation() {
+        super();
+    }
+
     public Preparation(long solutionId, double finalQuantity, FinalQuantityUnit finalUnit,
                        String comment, String ownerUsername, Instant preparedAt) {
         super();

@@ -6,35 +6,22 @@
  */
 
 plugins {
-    // Apply the application plugin to add support for building a CLI application in Java.
-    application
+    id("java")
+    id("application")
 }
 
 repositories {
-    // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
 
 dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation(libs.junit.jupiter)
-
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    // This dependency is used by the application.
-    implementation(libs.guava)
-}
-
-// Apply a specific Java toolchain to ease working on different environments.
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
+    testImplementation("junit:junit:4.13.2")
 }
 
 application {
-    // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass.set("org.example.App")
 }
 
 tasks.named<Test>("test") {
@@ -54,3 +41,4 @@ tasks.withType<JavaExec> {
 tasks.withType<JavaExec> {
     jvmArgs("-Dfile.encoding=UTF-8", "-Dconsole.encoding=UTF-8", "-Dstdout.encoding=UTF-8")
 }
+

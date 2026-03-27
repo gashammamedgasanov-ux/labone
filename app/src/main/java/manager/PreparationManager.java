@@ -88,18 +88,44 @@ public class PreparationManager {
         List<Preparation> result = getPreparationsForSolution(solutionId);
 
         //ортируем полученный список приготовлений по убыванию даты приготовления
-        result.sort((p1, p2) -> {
-            if (p1.getPreparedAt() == null && p2.getPreparedAt() == null) return 0;
-            if (p1.getPreparedAt() == null) return 1;
-            if (p2.getPreparedAt() == null) return -1;
-            return p2.getPreparedAt().compareTo(p1.getPreparedAt());
-        });
-
+        result.sort(PreparationManager::compare);
         if (limit > 0 && limit < result.size()) {
             return result.subList(0, limit);
         }
         return result;
     }
+
+    public static  int compare (Preparation p1, Preparation p2) {
+        if (p1.getPreparedAt() == null && p2.getPreparedAt() == null) return 0;
+        if (p1.getPreparedAt() == null) return 1;
+        if (p2.getPreparedAt() == null) return -1;
+        return p2.getPreparedAt().compareTo(p1.getPreparedAt());
+    }
+
+    //методы для работы с файлами
+    public void clear() {
+        preparations.clear();
+    }
+
+    public void setAll(Map<Long, Preparation> newPreparations) {
+        preparations.clear();
+        preparations.putAll(newPreparations);
+    }
+
+    public void updateNextId() {
+        long maxId = 0;
+        for (Long id : preparations.keySet()) {
+            if (id > maxId) {
+                maxId = id;
+            }
+        }
+        nextId = maxId + 1;
+    }
+
+    public Map<Long, Preparation> getAllPreparationsMap() {
+        return preparations;
+    }
+
 }
 
 

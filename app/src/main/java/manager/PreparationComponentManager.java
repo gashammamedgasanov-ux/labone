@@ -77,4 +77,28 @@ public class PreparationComponentManager {
         }
         components.remove(id);
     }
+
+    //методы для работы с файлом
+    public void clear() {
+        components.clear();
+    }
+
+    public void setAll(Map<Long, PreparationComponent> newComponents) {
+        components.clear();
+        components.putAll(newComponents);
+    }
+
+    public void updateNextId() {
+        long maxId = 0;
+        for (Long id : components.keySet()) {
+            if (id > maxId) {
+                maxId = id;
+            }
+        }
+        nextId = maxId + 1;
+    }
+
+    public Map<Long, PreparationComponent> getAllComponentsMap() {
+        return components;
+    }
 }

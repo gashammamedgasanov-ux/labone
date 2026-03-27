@@ -9,6 +9,10 @@ public class PreparationComponent extends BaseEntity {
     private double quantity;
     private ComponentUnit unit;
 
+    public PreparationComponent() {
+        super();
+    }
+
     public PreparationComponent(long preparationId, long batchId, double quantity, ComponentUnit unit) {
         super();
         this.preparationId = preparationId;

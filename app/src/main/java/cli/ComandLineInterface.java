@@ -9,18 +9,27 @@ import domain.enums.SolutionConcentrationUnit;
 import manager.PreparationComponentManager;
 import manager.PreparationManager;
 import manager.SolutionManager;
+import storage.FileStorage;
+import storage.LabData;
+import validation.FileValidator;
 import validation.PreparationComponentValidation;
 import validation.PreparationValidator;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 
 public class ComandLineInterface {
-    private PreparationManager preparationManager;
-    private PreparationComponentManager preparationComponentManager;
-    private SolutionManager solutionManager;
-    private Scanner scanner;
+    private final PreparationManager preparationManager;
+    private final PreparationComponentManager preparationComponentManager;
+    private final SolutionManager solutionManager;
+    private final  Scanner scanner;
     private PreparationComponentValidation PreparationValidation;
+    private final FileStorage fileStorage;
+    private final FileValidator fileValidator;
+    private boolean running = true;
+    private String currentFilePath = null;
+
 
     public ComandLineInterface(PreparationManager preparationManager,
                                PreparationComponentManager preparationComponentManager,
@@ -28,6 +37,8 @@ public class ComandLineInterface {
         this.preparationManager = preparationManager;
         this.preparationComponentManager = preparationComponentManager;
         this.solutionManager = solutionManager;
+        this.fileStorage = new FileStorage();
+        this.fileValidator = new FileValidator();
         this.scanner = new Scanner(System.in);
     }
 
@@ -35,15 +46,19 @@ public class ComandLineInterface {
         System.out.println("Добро пожаловать");
         printHelp();
 
-        while (true) {
+        while (running) {
             System.out.print("> ");
+            if (!scanner.hasNextLine()) {
+                break;
+            }
             String input = scanner.nextLine().trim(); // читаем всю строку целиком
             if (input.equalsIgnoreCase("exit")) {
-                System.out.println("Выход");
+                Exit();
                 break;
             }
             processCommand(input); // передаём всю строку в обработчик
         }
+        scanner.close();
     }
 
     private void printHelp() {
@@ -59,6 +74,8 @@ public class ComandLineInterface {
         System.out.println("comp_add - добавляет компонент приготовления");
         System.out.println("prep_update - обновляет данные о приготовлениях ");
         System.out.println("comp_list - выводит список компонентов приготовления, по его Id");
+        System.out.println("load - загружает файл");
+        System.out.println("save-сохранить файл");
     }
 
     // обрабатываем команды, получаем всю строку
@@ -72,7 +89,7 @@ public class ComandLineInterface {
                     printHelp();
                     break;
                 case "exit":
-                    System.exit(0);
+                    Exit();
                     break;
                 case "sol_list":
                     // для sol_list передаём все аргументы
@@ -87,31 +104,31 @@ public class ComandLineInterface {
                     solShow(args);
                     break;
                 case "prep_add":
-                    if (args.isEmpty()) throw new IllegalArgumentException("Укажите ID раствора");
                     prepAdd(args);
                     break;
                 case "prep_show":
-                    if (args.isEmpty()) throw new IllegalArgumentException("Укажите ID приготовления");
                     prepShow(args);
                     break;
                 case "prep_list":
                     prepList(args);
                     break;
                 case "prep_delete":
-                    if (args.isEmpty()) throw new IllegalArgumentException("Укажите ID приготовления");
                     prepDelete(args);
                     break;
                 case "comp_add":
-                    if (args.isEmpty()) throw new IllegalArgumentException("Укажите ID приготовления");
-                    compAdd(args);
+                    compAdd();
                     break;
                 case "comp_list":
-                    if (args.isEmpty()) throw new IllegalArgumentException("Укажите ID приготовления");
                     compList(args);
                     break;
                 case "prep_update":
-                    if (args.isEmpty()) throw new IllegalArgumentException("Укажите ID приготовления");
                     prepUpdate(args);
+                    break;
+                case "save":
+                    Save(args);
+                    break;
+                case "load":
+                    Load(args);
                     break;
                 default:
                     System.out.println("Такой команды нет, введите help для списка команд");
@@ -172,7 +189,6 @@ public class ComandLineInterface {
             }
         }
     }
-
 
     private void solAdd() {
         System.out.println("название:");
@@ -258,8 +274,8 @@ public class ComandLineInterface {
         System.out.println("Дата создания:  " + prep.getCreatedAt());
         System.out.println("Комментарий: " + prep.getComment());
     }
-//исправить по флагам
-private void prepList(String args) {
+
+    private void prepList(String args) {
     String[] tokens = args.trim().split("\\s+");
     if (tokens.length == 0 || tokens[0].isEmpty()) {
         throw new IllegalArgumentException("Укажите ID раствора");
@@ -373,8 +389,7 @@ private void prepList(String args) {
         }
     }
 
-//изменить по методичке!!!!!!!
-private void prepUpdate(String args) {
+    private void prepUpdate(String args) {
     // Разбиваем аргументы команды
     String[] parts = args.split(" ", 2);
 
@@ -406,7 +421,7 @@ private void prepUpdate(String args) {
             preparation.getId(),
             preparation.getSolutionId(),
             preparation.getCreatedAt(),
-            preparation.getOwnerUsername()  // ВАЖНО!
+            preparation.getOwnerUsername()
     );
 
     // Копируем текущие значения
@@ -446,7 +461,7 @@ private void prepUpdate(String args) {
                 try {
                     updatedPreparation.setFinalUnit(FinalQuantityUnit.valueOf(value.toUpperCase()));
                 } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Недопустимая единица измерения. Допустимые: ML, L, G, MG");
+                    throw new IllegalArgumentException("Недопустимая единица измерения. Допустимые: ML, G");
                 }
                 break;
 
@@ -527,6 +542,122 @@ private void prepUpdate(String args) {
             System.out.println("Данные введены");
         } catch (IllegalAccessException e) {
             System.out.println("Ошибка: " + e.getMessage());
+        }
+    }
+
+     //Сохранение  данных в файл
+    private void Save(String args) {
+        String filePath = args;
+        if (filePath.isEmpty()) {
+            if (currentFilePath != null && !currentFilePath.isEmpty()) {
+                filePath = currentFilePath;
+            } else {
+                System.out.println("Укажите путь к файлу. Пример: save data.json");
+                return;
+            }
+        }
+        try {
+            // Собираем все данные в LabData
+            LabData data = new LabData(
+                    solutionManager.getSolutions(),
+                    preparationManager.getAllPreparationsMap(),
+                    preparationComponentManager.getAllComponentsMap()
+            );
+            // Сохраняем
+            fileStorage.save(data, filePath);
+            currentFilePath = filePath;
+            System.out.println("Данные сохранены в: " + filePath);
+
+        } catch (IOException e) {
+            System.out.println("Ошибка сохранения: " + e.getMessage());
+        }
+    }
+
+     //Загрузка данных из файла
+    private void Load(String args) {
+        if (args.isEmpty()) {
+            System.out.println("Укажите путь к файлу. Пример: load data.json");
+            return;
+        }
+
+        try {
+            // Загружаем из файла
+            LabData loadedData = fileStorage.load(args);
+
+            // Проверяем целостность
+            List<String> errors = fileValidator.validate(loadedData);
+            if (!errors.isEmpty()) {
+                System.out.println("Ошибки в файле:");
+                errors.forEach(err -> System.out.println("   • " + err));
+                return;
+            }
+
+            // Загружаем данные в менеджеры
+            if (loadedData.getSolutions() != null) {
+                solutionManager.setAll(loadedData.getSolutions());
+                solutionManager.updateNextId();
+            }
+            if (loadedData.getPreparations() != null) {
+                preparationManager.setAll(loadedData.getPreparations());
+                preparationManager.updateNextId();
+            }
+            if (loadedData.getComponents() != null) {
+                preparationComponentManager.setAll(loadedData.getComponents());
+                preparationComponentManager.updateNextId();
+            }
+
+            currentFilePath = args;
+            System.out.println("Данные загружены из: " + args);
+
+        } catch (IOException e) {
+            System.out.println("Ошибка загрузки: " + e.getMessage());
+        }
+    }
+
+    private void Exit() {
+        System.out.println("Выход из программы...");
+        boolean hasData = !solutionManager.getAll().isEmpty() ||
+                !preparationManager.getAllPreparations().isEmpty() ||
+                !preparationComponentManager.getAllComponents().isEmpty();
+
+        if (!hasData) {
+            System.out.println("Нет данных для сохранения");
+            running = false;
+            return;
+        }
+        System.out.print("Сохранить данные перед выходом? (yes/no): ");
+        String answer = scanner.nextLine().trim().toLowerCase();
+
+        if (!answer.equals("yes")) {
+            System.out.println("Данные не сохранены");
+            running = false;
+            return;
+        }
+        if (currentFilePath != null && !currentFilePath.isEmpty()) {
+            saveWithDefaultPath();
+        } else {
+            askForSavePath();
+        }
+        running = false;
+    }
+
+    private void saveWithDefaultPath() {
+        System.out.print("Сохранить в " + currentFilePath + "? (yes/no): ");
+        String useDefault = scanner.nextLine().trim().toLowerCase();
+        if (useDefault.equals("yes")) {
+            Save(currentFilePath);
+        } else {
+            askForSavePath();
+        }
+    }
+
+    private void askForSavePath() {
+        System.out.print("Введите путь для сохранения: ");
+        String filePath = scanner.nextLine().trim();
+        if (!filePath.isEmpty()) {
+            Save(filePath);
+        } else {
+            System.out.println("Путь не указан, сохранение пропущено");
         }
     }
 }
