@@ -62,4 +62,29 @@ public class SolutionManager {
         }
         solutions.remove(id);
     }
+
+    //методы для работы с файлами
+
+    public void clear() {
+        solutions.clear();
+    }
+
+    public void setAll(Map<Long, Solution> newSolutions) {
+        solutions.clear();
+        solutions.putAll(newSolutions);
+    }
+
+    public void updateNextId() {
+        long maxId = 0;
+        for (Long id : solutions.keySet()) {
+            if (id > maxId) {
+                maxId = id;
+            }
+        }
+        nextId = maxId + 1;
+    }
+
+    public Map<Long, Solution> getSolutions() {
+        return solutions;
+    }
 }

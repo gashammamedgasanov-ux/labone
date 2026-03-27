@@ -10,6 +10,10 @@ public final class Solution extends BaseEntity{
     private String solvent;
     private String ownerUsername;
 
+    public Solution() {
+        super();
+    }
+
     //ну вот здесь конструктор
     public Solution(String name,
                     double concentration,

@@ -1,0 +1,16 @@
+{
+  "solutions" : {
+    "1" : {
+      "id" : 1,
+      "createdAt" : 1774578023.853297000,
+      "updatedAt" : 1774578023.853300000,
+      "name" : "fecor",
+      "concentration" : 45.0,
+      "concentrationUnit" : "PERCENT",
+      "solvent" : "water",
+      "ownerUsername" : "faku"
+    }
+  },
+  "preparations" : { },
+  "components" : { }
+}
