@@ -87,4 +87,6 @@ public class SolutionManager {
     public Map<Long, Solution> getSolutions() {
         return solutions;
     }
+
+
 }

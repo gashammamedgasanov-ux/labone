@@ -6,39 +6,41 @@
  */
 
 plugins {
-    id("java")
-    id("application")
+    java
+    application
 }
+
+group = "org.example"
+version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    // Jackson for JSON (если нужен)
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
-    testImplementation("junit:junit:4.13.2")
+
+    // Тестирование
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testImplementation("org.assertj:assertj-core:3.24.2")
+    testImplementation("org.mockito:mockito-core:5.3.1")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 application {
     mainClass.set("org.example.App")
 }
 
-tasks.named<Test>("test") {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
-}
-
-
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
 tasks.withType<JavaExec> {
-    jvmArgs("-Dfile.encoding=UTF-8")
-}
-
-tasks.withType<JavaExec> {
     jvmArgs("-Dfile.encoding=UTF-8", "-Dconsole.encoding=UTF-8", "-Dstdout.encoding=UTF-8")
 }
-
