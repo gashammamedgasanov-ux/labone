@@ -11,6 +11,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
+import java.io.File;
 import manager.*;
 
 import java.time.Instant;
@@ -24,6 +26,7 @@ public class MainController {
     @FXML private TableColumn<Solution, String> colName;
     @FXML private TableColumn<Solution, Double> colConcentration;
     @FXML private TableColumn<Solution, String> colUnit;
+    @FXML private TableColumn<Solution, String> colSolvent;
     @FXML private TableColumn<Solution, String> colOwner;
 
     // инфа про раствор
@@ -45,6 +48,9 @@ public class MainController {
     @FXML private TextField txtPrepQty;
     @FXML private ComboBox<FinalQuantityUnit> cmbPrepUnit;
     @FXML private TextField txtPrepComment;
+    @FXML private TextField txtEditPrepQty;
+    @FXML private ComboBox<FinalQuantityUnit> cmbEditPrepUnit;
+    @FXML private TextField txtEditPrepComment;
 
     // компоненты
     @FXML private TableView<PreparationComponent> componentsTable;
@@ -55,6 +61,9 @@ public class MainController {
     @FXML private TextField txtCompBatchId;
     @FXML private TextField txtCompQty;
     @FXML private ComboBox<ComponentUnit> cmbCompUnit;
+    @FXML private TextField txtEditCompBatchId;
+    @FXML private TextField txtEditCompQty;
+    @FXML private ComboBox<ComponentUnit> cmbEditCompUnit;
 
 
     private SolutionManager solutionManager;
@@ -80,6 +89,7 @@ public class MainController {
                 new javafx.beans.property.SimpleStringProperty(
                         cellData.getValue().getConcentrationUnit().toString()
                 ));
+        colSolvent.setCellValueFactory(new PropertyValueFactory<>("solvent"));
         colOwner.setCellValueFactory(new PropertyValueFactory<>("ownerUsername"));
 
         // Настройка ComboBox для единиц концентрации
@@ -276,7 +286,7 @@ public class MainController {
         }
     }
 
-    // ===== КОМАНДЫ ДЛЯ ПРИГОТОВЛЕНИЙ =====
+    // команды для приготовлений
 
     @FXML
     private void handleAddPreparation() {
@@ -317,9 +327,51 @@ public class MainController {
             showAlert("Успех", "Приготовление удалено");
         }
     }
+    @FXML
+    private void handleEditPreparation() {
+        Preparation selected = preparationsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert("Ошибка", "Выберите приготовление для редактирования");
+            return;
+        }
 
-    // команды для приготовлений
+        try {
+            Double newQty = null;
+            FinalQuantityUnit newUnit = null;
+            String newComment = null;
 
+            if (!txtEditPrepQty.getText().trim().isEmpty()) {
+                newQty = Double.parseDouble(txtEditPrepQty.getText().trim());
+            }
+            if (cmbEditPrepUnit.getValue() != null) {
+                newUnit = cmbEditPrepUnit.getValue();
+            }
+            if (!txtEditPrepComment.getText().trim().isEmpty()) {
+                newComment = txtEditPrepComment.getText().trim();
+            }
+
+            preparationManager.updatePreparation(
+                    selected.getId(), newQty, newUnit, newComment
+            );
+
+            // Обновляем таблицу
+            loadPreparations(currentSolution.getId());
+
+            // Очищаем поля редактирования
+            txtEditPrepQty.clear();
+            cmbEditPrepUnit.setValue(null);
+            txtEditPrepComment.clear();
+
+            showAlert("Успех", "Приготовление обновлено");
+
+        } catch (NumberFormatException e) {
+            showAlert("Ошибка", "Количество должно быть числом");
+        } catch (IllegalArgumentException e) {
+            showAlert("Ошибка", e.getMessage());
+        }
+    }
+
+    // команды для компонентов
     @FXML
     private void handleAddComponent() {
         if (currentPreparation == null) {
@@ -328,6 +380,10 @@ public class MainController {
         }
         try {
             long batchId = Long.parseLong(txtCompBatchId.getText().trim());
+            if (batchId < 1 || batchId > 100) {
+                showAlert("Ошибка", "ID партии должен быть от 1 до 100");
+                return;
+            }
             double qty = Double.parseDouble(txtCompQty.getText().trim());
             ComponentUnit unit = cmbCompUnit.getValue();
             if (unit == null) { showAlert("Ошибка", "Выберите единицы"); return; }
@@ -361,8 +417,56 @@ public class MainController {
         }
     }
 
+    @FXML
+    private void handleEditComponent() {
+        PreparationComponent selected = componentsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert("Ошибка", "Выберите компонент для редактирования");
+            return;
+        }
+        try {
+            Long newBatchId = null;
+            Double newQty = null;
+            ComponentUnit newUnit = null;
+
+            if (!txtEditCompBatchId.getText().trim().isEmpty()) {
+                newBatchId = Long.parseLong(txtEditCompBatchId.getText().trim());
+                if (newBatchId < 1 || newBatchId > 100) {
+                    showAlert("Ошибка", "ID партии должен быть от 1 до 100");
+                    return;
+                }
+            }
+            if (!txtEditCompQty.getText().trim().isEmpty()) {
+                newQty = Double.parseDouble(txtEditCompQty.getText().trim());
+            }
+            if (cmbEditCompUnit.getValue() != null) {
+                newUnit = cmbEditCompUnit.getValue();
+            }
+            componentManager.removeComponent(selected.getId());
+            componentManager.addComponent(
+                    currentPreparation.getId(),
+                    newBatchId != null ? newBatchId : selected.getBatchId(),
+                    newQty != null ? newQty : selected.getQuantity(),
+                    newUnit != null ? newUnit : selected.getUnit()
+            );
+
+            loadComponents(currentPreparation.getId());
+
+            // Очищаем поля
+            txtEditCompBatchId.clear();
+            txtEditCompQty.clear();
+            cmbEditCompUnit.setValue(null);
+
+            showAlert("Успех", "Компонент обновлен");
+        }catch (NumberFormatException e) {
+            showAlert("Ошибка", "ID партии и количество должны быть числами");
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            showAlert("Ошибка", e.getMessage());
+        }
+    }
 
 
+    //общие команды:
     @FXML
     private void handleRefresh() {
         refreshSolutions();
@@ -376,30 +480,40 @@ public class MainController {
 
     @FXML
     private void handleSave() {
-        TextInputDialog dialog = new TextInputDialog("data.json");
-        dialog.setTitle("Сохранение");
-        dialog.setHeaderText("Введите путь к файлу");
-        dialog.showAndWait().ifPresent(path -> {
-            if (!path.isEmpty()) {
-                mainApp.saveData(path);
-                showAlert("Успех", "Данные сохранены в: " + path);
-            }
-        });
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Сохранить данные");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("JSON files", "*.json")
+        );
+        fileChooser.setInitialFileName("data.json");
+
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            String filePath = file.getAbsolutePath();
+            mainApp.saveData(filePath);
+            showAlert("Успех", "Данные сохранены в: " + filePath);
+        }
     }
 
     @FXML
     private void handleLoad() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Загрузка");
-        dialog.setHeaderText("Введите путь к файлу");
-        dialog.showAndWait().ifPresent(path -> {
-            if (!path.isEmpty()) {
-                mainApp.loadData(path);
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Загрузить данные");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("JSON files", "*.json")
+        );
+
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            String filePath = file.getAbsolutePath();
+            boolean success = mainApp.loadData(filePath);
+            if (success) {
                 refreshSolutions();
-                showAlert("Успех", "Данные загружены из: " + path);
-            }
-        });
+                showAlert("Успех", "Данные загружены из: " + filePath);
+        }
     }
+    }
+
 
     private void showAlert(String title, String msg) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

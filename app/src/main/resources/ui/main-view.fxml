@@ -33,6 +33,7 @@
                         <TableColumn fx:id="colName" text="Название" prefWidth="180"/>
                         <TableColumn fx:id="colConcentration" text="Конц." prefWidth="70"/>
                         <TableColumn fx:id="colUnit" text="Ед." prefWidth="60"/>
+                        <TableColumn fx:id="colSolvent" text="Растворитель" prefWidth="100"/>
                         <TableColumn fx:id="colOwner" text="Владелец" prefWidth="100"/>
                     </columns>
                 </TableView>
@@ -83,6 +84,16 @@
                                 <Button text="Удалить" onAction="#handleDeletePreparation"/>
                             </HBox>
 
+                            <!-- Форма редактирования -->
+                            <HBox spacing="10">
+                                <Label text="Редактировать выбранное:"/>
+                                <TextField fx:id="txtEditPrepQty" prefWidth="80" promptText="Новое количество"/>
+                                <ComboBox fx:id="cmbEditPrepUnit" prefWidth="60"/>
+                                <TextField fx:id="txtEditPrepComment" prefWidth="200" promptText="Новый комментарий"/>
+                                <Button text="Редактировать" onAction="#handleEditPreparation"/>
+                                <Button text="Удалить" onAction="#handleDeletePreparation"/>
+                            </HBox>
+
                             <TableView fx:id="preparationsTable">
                                 <columns>
                                     <TableColumn fx:id="colPrepId" text="ID" prefWidth="60"/>
@@ -109,6 +120,18 @@
                                 <Button text="Добавить" onAction="#handleAddComponent"/>
                                 <Button text="Удалить" onAction="#handleDeleteComponent"/>
                             </HBox>
+
+                            <!-- Форма редактирования -->
+                            <HBox spacing="10">
+                                <Label text="Редактировать выбранный:"/>
+                                <TextField fx:id="txtEditCompBatchId" prefWidth="80" promptText="Новый ID партии"/>
+                                <TextField fx:id="txtEditCompQty" prefWidth="80" promptText="Новое количество"/>
+                                <ComboBox fx:id="cmbEditCompUnit" prefWidth="60"/>
+                                <Button text="Редактировать" onAction="#handleEditComponent"/>
+                                <Button text="Удалить" onAction="#handleDeleteComponent"/>
+                            </HBox>
+
+
 
                             <TableView fx:id="componentsTable">
                                 <columns>

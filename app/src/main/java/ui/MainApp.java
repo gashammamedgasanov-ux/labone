@@ -3,6 +3,7 @@ package ui;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import manager.*;
@@ -53,7 +54,7 @@ public class MainApp extends Application {
         controller.refreshSolutions();
     }
 
-    void loadData(String filePath) {
+    public boolean loadData(String filePath) {
         try {
             FileStorage fileStorage = new FileStorage();
             FileValidator fileValidator = new FileValidator();
@@ -62,9 +63,13 @@ public class MainApp extends Application {
             List<String> errors = fileValidator.validate(loadedData);
 
             if (!errors.isEmpty()) {
-                System.err.println("Ошибки в файле:");
-                errors.forEach(System.err::println);
-                return;
+                // Показываем все ошибки в одном окне
+                StringBuilder errorMsg = new StringBuilder("Ошибки в файле:\n");
+                for (String error : errors) {
+                    errorMsg.append("• ").append(error).append("\n");
+                }
+                showErrorDialog("Ошибка загрузки", errorMsg.toString());
+                return false;
             }
 
             if (loadedData.getSolutions() != null) {
@@ -81,10 +86,22 @@ public class MainApp extends Application {
             }
 
             System.out.println("Данные загружены из: " + filePath);
+            return true;
+
         } catch (IOException e) {
-            System.err.println("Ошибка загрузки: " + e.getMessage());
+            showErrorDialog("Ошибка загрузки", e.getMessage());
+            return false;
         }
     }
+
+    private void showErrorDialog(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
 
     public void saveData(String filePath) {
         try {
