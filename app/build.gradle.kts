@@ -8,6 +8,7 @@
 plugins {
     java
     application
+    id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 group = "org.example"
@@ -18,15 +19,18 @@ repositories {
 }
 
 dependencies {
-    // Jackson for JSON (если нужен)
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    //implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
 
-    // Тестирование
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation("org.mockito:mockito-core:5.3.1")
     testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
+}
+
+javafx {
+    version = "21"
+    modules = listOf("javafx.controls", "javafx.fxml")
 }
 
 tasks.test {
@@ -34,7 +38,7 @@ tasks.test {
 }
 
 application {
-    mainClass.set("org.example.App")
+    mainClass.set("ui.MainApp")
 }
 
 tasks.withType<JavaCompile> {

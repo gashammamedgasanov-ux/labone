@@ -119,6 +119,10 @@ public class PreparationManager {
         }
         nextId = maxId + 1;
     }
+
+    public Map<Long, Preparation> getAllPreparationsMap() {
+        return Collections.unmodifiableMap(preparations);
+    }
 }
 
 
