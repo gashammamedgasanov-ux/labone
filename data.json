@@ -1,0 +1,16 @@
+{
+  "solutions" : {
+    "1" : {
+      "id" : 1,
+      "createdAt" : 1774626137.115426000,
+      "updatedAt" : 1774626137.115430000,
+      "name" : "fecl2",
+      "concentration" : 45.0,
+      "concentrationUnit" : "PERCENT",
+      "solvent" : "water",
+      "ownerUsername" : "gasham"
+    }
+  },
+  "preparations" : { },
+  "components" : { }
+}
