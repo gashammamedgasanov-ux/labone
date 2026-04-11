@@ -3,6 +3,7 @@ package storage;
 import domain.entity.Preparation;
 import domain.entity.PreparationComponent;
 import domain.entity.Solution;
+import domain.entity.User;
 
 import java.util.Map;
 
@@ -15,6 +16,7 @@ public class LabData {
     private Map<Long, Solution> solutions;
     private Map<Long, Preparation> preparations;
     private Map<Long, PreparationComponent> components;
+    private Map<String, User> users;
 
     public LabData() {
     }
@@ -41,6 +43,8 @@ public class LabData {
         return components;
     }
 
+    public Map<String, User> getUsers() { return users; }
+
     public void setSolutions(Map<Long, Solution> solutions) {
         this.solutions = solutions;
     }
@@ -52,4 +56,9 @@ public class LabData {
     public void setComponents(Map<Long, PreparationComponent> components) {
         this.components = components;
     }
+
+    public void setUsers(Map<String, User> users) {
+        this.users = users;
+    }
 }
+

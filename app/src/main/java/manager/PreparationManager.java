@@ -44,9 +44,13 @@ public class PreparationManager {
     }
 
     //метод для команды prep_delete
-    public void removePreparation(Long id) {
+    public void removePreparation(Long id,String currentUser) {
         if (!preparations.containsKey(id)) {
             throw new IllegalArgumentException("Приготовление с id=" + id + " не найдено");
+        }
+        Preparation p = getPreparation(id);
+        if (!p.getOwnerUsername().equals(currentUser)) {
+            throw new IllegalArgumentException("Нет прав на удаление чужого приготовления");
         }
         preparations.remove(id);
     }

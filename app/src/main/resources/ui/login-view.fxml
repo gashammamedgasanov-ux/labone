@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" alignment="CENTER"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ui.LoginController">
+
+    <Label text="Вход в систему" style="-fx-font-size: 18px;"/>
+    <TextField fx:id="loginField" promptText="Логин" prefWidth="200"/>
+    <PasswordField fx:id="passwordField" promptText="Пароль" prefWidth="200"/>
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Войти" onAction="#handleLogin"/>
+        <Button text="Регистрация" onAction="#handleRegister"/>
+    </HBox>
+    <Label fx:id="errorLabel" textFill="red"/>
+</VBox>

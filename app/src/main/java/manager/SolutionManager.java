@@ -56,10 +56,15 @@ public class SolutionManager {
         existing.setUpdatedAt(Instant.now());
     }
 
-    public void removeSolution(Long id) {
+    public void removeSolution(Long id, String currentUser) {
         if (!solutions.containsKey(id)) {
             throw new IllegalArgumentException("Раствор с id=" + id + " не найден");
         }
+        Solution s = getSolution(id);
+        if (!s.getOwnerUsername().equals(currentUser)) {
+            throw new IllegalArgumentException("Нет прав на удаление чужого раствора");
+        }
+
         solutions.remove(id);
     }
 

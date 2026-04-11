@@ -70,6 +70,7 @@ public class MainController {
     private PreparationManager preparationManager;
     private PreparationComponentManager componentManager;
     private MainApp mainApp;
+    private UserManager userManager;
 
     // данные для таблиц
     private ObservableList<Solution> solutions = FXCollections.observableArrayList();
@@ -164,6 +165,9 @@ public class MainController {
         this.preparationManager = pm;
         this.componentManager = cm;
     }
+    public void setUserManager(UserManager userManager) {
+        this.userManager = userManager;
+    }
 
     public void setMainApp(MainApp app) {
         this.mainApp = app;
@@ -230,6 +234,7 @@ public class MainController {
             String owner = txtOwner.getText().trim();
             if (owner.isEmpty()) { owner = "SYSTEM"; }
 
+            owner = userManager.getCurrentUser().getLogin();
             solutionManager.addSolution(name, conc, unit, solvent, owner);
             refreshSolutions();
             showAlert("Успех", "Раствор добавлен");
@@ -244,6 +249,11 @@ public class MainController {
     private void handleUpdateSolution() {
         if (currentSolution == null) {
             showAlert("Ошибка", "Выберите раствор для редактирования");
+            return;
+        }
+        String currentUser = userManager.getCurrentUser().getLogin();
+        if (!currentSolution.getOwnerUsername().equals(currentUser)) {
+            showAlert("Ошибка", "Нельзя редактировать чужой раствор");
             return;
         }
         try {
@@ -272,11 +282,16 @@ public class MainController {
             showAlert("Ошибка", "Выберите раствор для удаления");
             return;
         }
+        String currentUser = userManager.getCurrentUser().getLogin();
+        if (!currentSolution.getOwnerUsername().equals(currentUser)) {
+            showAlert("Ошибка", "Нельзя удалять чужой раствор");
+            return;
+        }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Подтверждение");
         confirm.setContentText("Удалить раствор \"" + currentSolution.getName() + "\"?");
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            solutionManager.removeSolution(currentSolution.getId());
+            solutionManager.removeSolution(currentSolution.getId(),currentUser);
             refreshSolutions();
             clearDetails();
             preparations.clear();
@@ -300,7 +315,8 @@ public class MainController {
             if (unit == null) { showAlert("Ошибка", "Выберите единицы"); return; }
             String comment = txtPrepComment.getText().trim();
 
-            preparationManager.addPreparation(currentSolution.getId(), qty, unit, comment, "SYSTEM", Instant.now());
+            String owner = userManager.getCurrentUser().getLogin();
+            preparationManager.addPreparation(currentSolution.getId(), qty, unit, comment, owner, Instant.now());
             loadPreparations(currentSolution.getId());
             showAlert("Успех", "Приготовление добавлено");
         } catch (NumberFormatException e) {
@@ -317,11 +333,16 @@ public class MainController {
             showAlert("Ошибка", "Выберите приготовление для удаления");
             return;
         }
+        String currentUser = userManager.getCurrentUser().getLogin();
+        if (!selected.getOwnerUsername().equals(currentUser)) {
+            showAlert("Ошибка", "Нельзя удалять чужое приготовление");
+            return;
+        }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Подтверждение");
         confirm.setContentText("Удалить приготовление #" + selected.getId() + "?");
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            preparationManager.removePreparation(selected.getId());
+            preparationManager.removePreparation(selected.getId(), currentUser);
             loadPreparations(currentSolution.getId());
             components.clear();
             showAlert("Успех", "Приготовление удалено");
@@ -332,6 +353,11 @@ public class MainController {
         Preparation selected = preparationsTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             showAlert("Ошибка", "Выберите приготовление для редактирования");
+            return;
+        }
+        String currentUser = userManager.getCurrentUser().getLogin();
+        if (!selected.getOwnerUsername().equals(currentUser)) {
+            showAlert("Ошибка", "Нельзя редактировать чужое приготовление");
             return;
         }
 

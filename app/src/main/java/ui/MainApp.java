@@ -2,6 +2,7 @@ package ui;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
@@ -19,39 +20,59 @@ public class MainApp extends Application {
     private SolutionManager solutionManager;
     private PreparationManager preparationManager;
     private PreparationComponentManager componentManager;
+    private UserManager userManager;
+    private Stage primaryStage;
 
     @Override
     public void start(Stage primaryStage) throws IOException {
+        this.primaryStage = primaryStage;
+
         solutionManager = new SolutionManager();
         preparationManager = new PreparationManager();
         BatchService batchService = new BatchService();
         componentManager = new PreparationComponentManager(preparationManager, batchService);
 
-        Parameters params = getParameters();
-        if (!params.getRaw().isEmpty()) {
-            String filePath = params.getRaw().get(0);
-            loadData(filePath);
-        }
-
-        // ПРАВИЛЬНАЯ ЗАГРУЗКА FXML
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("/ui/main-view.fxml"));
+        loader.setLocation(getClass().getResource("/ui/login-view.fxml"));
+        Parent root = loader.load();
 
-        // Отладка
-        System.out.println("Пробуем загрузить: " + getClass().getResource("/ui/main-view.fxml"));
+        LoginController loginController = loader.getController();
+        loginController.setMainApp(this);
 
-        BorderPane root = loader.load();
-
-        MainController controller = loader.getController();
-        controller.setManagers(solutionManager, preparationManager, componentManager);
-        controller.setMainApp(this);
-
-        Scene scene = new Scene(root, 1000, 700);
-        primaryStage.setTitle("Система учета растворов");
-        primaryStage.setScene(scene);
+        primaryStage.setScene(new Scene(root, 400, 300));
+        primaryStage.setTitle("Авторизация");
         primaryStage.show();
+    }
 
-        controller.refreshSolutions();
+    public void setUserManager(UserManager userManager) {
+        this.userManager = userManager;
+    }
+
+    public void openMainWindow() {
+        try {
+            Parameters params = getParameters();
+            if (!params.getRaw().isEmpty()) {
+                loadData(params.getRaw().get(0));
+            }
+
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/ui/main-view.fxml"));
+            BorderPane root = loader.load();
+
+            MainController controller = loader.getController();
+            controller.setManagers(solutionManager, preparationManager, componentManager);
+            controller.setUserManager(userManager);
+            controller.setMainApp(this);
+
+            Scene scene = new Scene(root, 1000, 700);
+            primaryStage.setScene(scene);
+            primaryStage.setTitle("Система учета растворов");
+
+            controller.refreshSolutions();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean loadData(String filePath) {
@@ -63,7 +84,6 @@ public class MainApp extends Application {
             List<String> errors = fileValidator.validate(loadedData);
 
             if (!errors.isEmpty()) {
-                // Показываем все ошибки в одном окне
                 StringBuilder errorMsg = new StringBuilder("Ошибки в файле:\n");
                 for (String error : errors) {
                     errorMsg.append("• ").append(error).append("\n");
@@ -85,9 +105,7 @@ public class MainApp extends Application {
                 componentManager.updateNextId();
             }
 
-            System.out.println("Данные загружены из: " + filePath);
             return true;
-
         } catch (IOException e) {
             showErrorDialog("Ошибка загрузки", e.getMessage());
             return false;
@@ -102,7 +120,6 @@ public class MainApp extends Application {
         alert.showAndWait();
     }
 
-
     public void saveData(String filePath) {
         try {
             FileStorage fileStorage = new FileStorage();
@@ -112,7 +129,6 @@ public class MainApp extends Application {
                     componentManager.getAllComponentsMap()
             );
             fileStorage.save(data, filePath);
-            System.out.println("Данные сохранены в: " + filePath);
         } catch (IOException e) {
             System.err.println("Ошибка сохранения: " + e.getMessage());
         }

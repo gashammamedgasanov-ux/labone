@@ -327,7 +327,7 @@ private void prepList(String args) {
         if (preparationManager.getPreparation(id) == null) {
             throw new IllegalArgumentException("Приготовление с id=" + id + " не найдено");
         }
-        preparationManager.removePreparation(id);
+        preparationManager.removePreparation(id,"");
         System.out.println("Приготовление удалено");
     }
 
