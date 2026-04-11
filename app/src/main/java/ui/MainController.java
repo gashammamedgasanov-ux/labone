@@ -34,7 +34,7 @@ public class MainController {
     @FXML private TextField txtConcentration;
     @FXML private ComboBox<SolutionConcentrationUnit> cmbUnit;
     @FXML private TextField txtSolvent;
-    @FXML private TextField txtOwner;
+    //@FXML private TextField txtOwner;
     @FXML private Label lblCreatedAt;
     @FXML private Label lblUpdatedAt;
 
@@ -79,6 +79,7 @@ public class MainController {
 
     private Solution currentSolution = null;
     private Preparation currentPreparation = null;
+    private String lastUsedFilePath;
 
     @FXML
     public void initialize() {
@@ -184,7 +185,7 @@ public class MainController {
         txtConcentration.setText(String.valueOf(s.getConcentration()));
         cmbUnit.setValue(s.getConcentrationUnit());
         txtSolvent.setText(s.getSolvent());
-        txtOwner.setText(s.getOwnerUsername());
+        //txtOwner.setText(s.getOwnerUsername());
         lblCreatedAt.setText(s.getCreatedAt() != null ? s.getCreatedAt().toString() : "-");
         lblUpdatedAt.setText(s.getUpdatedAt() != null ? s.getUpdatedAt().toString() : "-");
     }
@@ -194,7 +195,7 @@ public class MainController {
         txtConcentration.clear();
         cmbUnit.setValue(null);
         txtSolvent.clear();
-        txtOwner.clear();
+        //txtOwner.clear();
         lblCreatedAt.setText("-");
         lblUpdatedAt.setText("-");
         txtPrepQty.clear();
@@ -231,10 +232,10 @@ public class MainController {
             SolutionConcentrationUnit unit = cmbUnit.getValue();
             if (unit == null) { showAlert("Ошибка", "Выберите единицы"); return; }
             String solvent = txtSolvent.getText().trim();
-            String owner = txtOwner.getText().trim();
-            if (owner.isEmpty()) { owner = "SYSTEM"; }
+            //String owner = txtOwner.getText().trim();
+            //if (owner.isEmpty()) { owner = "SYSTEM"; }
 
-            owner = userManager.getCurrentUser().getLogin();
+            String owner = userManager.getCurrentUser().getLogin();
             solutionManager.addSolution(name, conc, unit, solvent, owner);
             refreshSolutions();
             showAlert("Успех", "Раствор добавлен");
@@ -262,7 +263,7 @@ public class MainController {
             double conc = Double.parseDouble(txtConcentration.getText().trim());
             SolutionConcentrationUnit unit = cmbUnit.getValue();
             String solvent = txtSolvent.getText().trim();
-            String owner = txtOwner.getText().trim();
+            //String owner = txtOwner.getText().trim();
 
             solutionManager.updateSolution(currentSolution.getId(), name, conc, unit, solvent);
             refreshSolutions();
@@ -495,13 +496,23 @@ public class MainController {
     //общие команды:
     @FXML
     private void handleRefresh() {
+        if (lastUsedFilePath != null) {
+            boolean success = mainApp.loadData(lastUsedFilePath);
+            if (!success) {
+                showAlert("Ошибка", "Не удалось загрузить данные из файла");
+                return;
+            }
+        } else {
+            showAlert("Инфо", "Сначала загрузите файл через кнопку 'Загрузить'");
+            return;
+        }
         refreshSolutions();
         clearDetails();
         preparations.clear();
         components.clear();
         currentSolution = null;
         currentPreparation = null;
-        showAlert("Инфо", "Данные обновлены");
+        showAlert("Инфо", "Данные обновлены из файла: " + lastUsedFilePath);
     }
 
     @FXML
@@ -522,6 +533,26 @@ public class MainController {
     }
 
     @FXML
+    private void handleQuickSave() {
+        if (lastUsedFilePath == null) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Выберите файл для сохранения");
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("JSON files", "*.json")
+            );
+            fileChooser.setInitialFileName("data.json");
+
+            File file = fileChooser.showSaveDialog(null);
+            if (file == null) {
+                return;
+            }
+            lastUsedFilePath = file.getAbsolutePath();
+        }
+        mainApp.saveData(lastUsedFilePath);
+        showAlert("Успех", "Данные сохранены в:\n" + lastUsedFilePath);
+    }
+
+    @FXML
     private void handleLoad() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Загрузить данные");
@@ -531,15 +562,14 @@ public class MainController {
 
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
-            String filePath = file.getAbsolutePath();
-            boolean success = mainApp.loadData(filePath);
+            lastUsedFilePath = file.getAbsolutePath();  // запоминание пути файла
+            boolean success = mainApp.loadData(lastUsedFilePath);
             if (success) {
                 refreshSolutions();
-                showAlert("Успех", "Данные загружены из: " + filePath);
+                showAlert("Успех", "Данные загружены из:\n" + lastUsedFilePath);
+            }
         }
     }
-    }
-
 
     private void showAlert(String title, String msg) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
