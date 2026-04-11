@@ -18,6 +18,7 @@
             <Separator orientation="VERTICAL"/>
             <Button text="Сохранить" onAction="#handleSave"/>
             <Button text="Загрузить" onAction="#handleLoad"/>
+            <Button text="Сохранить в текущий файл" onAction="#handleQuickSave"/>
         </HBox>
     </top>
 
@@ -57,9 +58,6 @@
 
                             <Label text="Растворитель:" GridPane.columnIndex="0" GridPane.rowIndex="3" style="-fx-font-weight: bold;"/>
                             <TextField fx:id="txtSolvent" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-
-                            <Label text="Владелец:" GridPane.columnIndex="0" GridPane.rowIndex="4" style="-fx-font-weight: bold;"/>
-                            <TextField fx:id="txtOwner" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
 
                             <Label text="Создан:" GridPane.columnIndex="0" GridPane.rowIndex="5" style="-fx-font-weight: bold;"/>
                             <Label fx:id="lblCreatedAt" GridPane.columnIndex="1" GridPane.rowIndex="5" text="-"/>
