@@ -21,7 +21,6 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        // Ничего не загружаем - UserManager уже загрузил из БД
         System.out.println("LoginController initialized");
     }
 
