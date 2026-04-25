@@ -12,7 +12,7 @@ public class LoginController {
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
 
-    private UserManager userManager;  // ← будет передан из MainApp
+    private UserManager userManager;
     private MainApp mainApp;
 
     public void setUserManager(UserManager userManager) {
