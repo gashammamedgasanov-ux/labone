@@ -3,11 +3,38 @@ package manager;
 import domain.entity.User;
 import java.util.HashMap;
 import java.util.Map;
+import storage.Storage;
 
 public class UserManager {
     private final Map<String, User> users = new HashMap<>();
     private User currentUser;
     private long nextId = 1;
+    private Storage storage = null;
+
+    public UserManager() {
+    }
+
+    public UserManager(Storage storage) {
+        this.storage = storage;
+        loadFromStorage();
+    }
+    private void loadFromStorage() {
+        if (storage != null) {
+            users.clear();
+            users.putAll(storage.loadAllUsers());
+            updateNextId();
+            System.out.println("Загружено пользователей из БД: " + users.size());
+        }
+    }
+    private void updateNextId() {
+        long maxId = 0;
+        for (User u : users.values()) {
+            if (u.getId() > maxId) {
+                maxId = u.getId();
+            }
+        }
+        nextId = maxId + 1;
+    }
 
     public boolean register(String login, String password) {
         if (users.containsKey(login)) return false;
@@ -15,6 +42,9 @@ public class UserManager {
         User user = new User(login, hash);
         user.setId(nextId++);
         users.put(login, user);
+        if (storage != null) {
+            storage.saveUser(user);
+        }
         return true;
     }
 

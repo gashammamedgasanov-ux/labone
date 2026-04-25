@@ -1,17 +1,23 @@
 package ui;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import manager.*;
+import storage.DatabaseStorage;
 import storage.FileStorage;
 import storage.LabData;
 import validation.FileValidator;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -22,13 +28,16 @@ public class MainApp extends Application {
     private PreparationComponentManager componentManager;
     private UserManager userManager;
     private Stage primaryStage;
+    private String lastUsedFilePath = null;
 
     @Override
     public void start(Stage primaryStage) throws IOException {
         this.primaryStage = primaryStage;
 
-        solutionManager = new SolutionManager();
-        preparationManager = new PreparationManager();
+        DatabaseStorage storage = new DatabaseStorage();
+        solutionManager = new SolutionManager(storage);
+        preparationManager = new PreparationManager(storage);
+        userManager = new UserManager(storage);
         BatchService batchService = new BatchService();
         componentManager = new PreparationComponentManager(preparationManager, batchService);
 
@@ -38,10 +47,34 @@ public class MainApp extends Application {
 
         LoginController loginController = loader.getController();
         loginController.setMainApp(this);
+        loginController.setUserManager(userManager);
 
         primaryStage.setScene(new Scene(root, 400, 300));
         primaryStage.setTitle("Авторизация");
         primaryStage.show();
+
+        primaryStage.setOnCloseRequest(event -> {
+            event.consume();
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Выход из программы");
+            alert.setHeaderText("Сохранить изменения?");
+            alert.setContentText("У вас есть несохранённые изменения. Сохранить перед выходом?");
+
+            ButtonType buttonSave = new ButtonType("Сохранить и выйти");
+            ButtonType buttonExit = new ButtonType("Выйти без сохранения");
+            ButtonType buttonCancel = new ButtonType("Отмена", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(buttonSave, buttonExit, buttonCancel);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == buttonSave) {
+                quickSave();
+                Platform.exit();
+                } else if (response == buttonExit) {
+                    Platform.exit();
+                }
+            });
+        });
     }
 
     public void setUserManager(UserManager userManager) {
@@ -104,7 +137,7 @@ public class MainApp extends Application {
                 componentManager.setAll(loadedData.getComponents());
                 componentManager.updateNextId();
             }
-
+            lastUsedFilePath = filePath;
             return true;
         } catch (IOException e) {
             showErrorDialog("Ошибка загрузки", e.getMessage());
@@ -133,6 +166,26 @@ public class MainApp extends Application {
             System.err.println("Ошибка сохранения: " + e.getMessage());
         }
     }
+
+    public void quickSave() {
+        if (lastUsedFilePath == null) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Выберите файл для сохранения");
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("JSON files", "*.json")
+            );
+            fileChooser.setInitialFileName("data.json");
+
+            File file = fileChooser.showSaveDialog(primaryStage);
+            if (file == null) {
+                return;
+            }
+            lastUsedFilePath = file.getAbsolutePath();
+        }
+        saveData(lastUsedFilePath);
+        System.out.println("Сохранено в: " + lastUsedFilePath);
+    }
+
 
     public static void main(String[] args) {
         launch(args);

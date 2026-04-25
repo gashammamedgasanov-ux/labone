@@ -3,7 +3,7 @@ package manager;
 import domain.entity.Solution;
 import domain.enums.SolutionConcentrationUnit;
 import validation.SolutionValidation;
-
+import storage.Storage;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +12,26 @@ import java.time.Instant;
 public class SolutionManager {
     private final Map<Long, Solution> solutions = new HashMap<>();
     private long nextId = 1;
+    private  Storage storage;
+
+    public SolutionManager(){
+    }
+
+    public SolutionManager(Storage storage) {
+        this.storage = storage;
+        loadFromStorage();
+    }
+    private void loadFromStorage() {
+        if (storage != null) {
+            solutions.clear();
+            solutions.putAll(storage.loadAllSolutions());
+            updateNextId();
+            System.out.println("Загружено растворов из БД: " + solutions.size());
+        }
+    }
+
+
+
 
     //метод для команды sol_add
     public Solution addSolution(String name, double concentration, SolutionConcentrationUnit concentrationUnit, String solvent, String ownerUsername) throws IllegalArgumentException  {
@@ -21,6 +41,9 @@ public class SolutionManager {
         solution.setCreatedAt(Instant.now());
         solution.setUpdatedAt(Instant.now());
         solutions.put(solution.getId(), solution);
+        if (storage != null) {
+            storage.saveSolution(solution);
+        }
         return solution;
     }
 
@@ -64,8 +87,10 @@ public class SolutionManager {
         if (!s.getOwnerUsername().equals(currentUser)) {
             throw new IllegalArgumentException("Нет прав на удаление чужого раствора");
         }
-
         solutions.remove(id);
+        if (storage != null) {
+            storage.deleteSolution(id);
+        }
     }
 
     //методы для работы с файлами
@@ -92,6 +117,7 @@ public class SolutionManager {
     public Map<Long, Solution> getSolutions() {
         return solutions;
     }
+
 
 
 }

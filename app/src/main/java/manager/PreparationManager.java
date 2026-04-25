@@ -3,13 +3,30 @@ package manager;
 import domain.entity.Preparation;
 import domain.enums.FinalQuantityUnit;
 import validation.PreparationValidator;
-
+import storage.Storage;
 import java.time.Instant;
 import java.util.*;
 
 public class PreparationManager {
     private final Map<Long, Preparation> preparations = new HashMap<>();
     private long nextId = 1;
+    private Storage storage = null;
+
+    public PreparationManager(){
+    }
+
+    public PreparationManager(Storage storage) {
+        this.storage = storage;
+        loadFromStorage();
+    }
+    private void loadFromStorage() {
+        if (storage != null) {
+            preparations.clear();
+            preparations.putAll(storage.loadAllPreparations());
+            updateNextId();
+            System.out.println("Загружено приготовлений из БД: " + preparations.size());
+        }
+    }
 
     //метод для команды prep_add
     public Preparation addPreparation(long solutionId,
@@ -24,6 +41,9 @@ public class PreparationManager {
         preparation.setCreatedAt(Instant.now());
         preparation.setUpdatedAt(Instant.now());
         preparations.put(preparation.getId(), preparation);
+        if (storage != null) {
+            storage.savePreparation(preparation);
+        }
         return preparation;
     }
 
@@ -53,6 +73,9 @@ public class PreparationManager {
             throw new IllegalArgumentException("Нет прав на удаление чужого приготовления");
         }
         preparations.remove(id);
+        if (storage != null) {
+            storage.deletePreparation(id);
+        }
     }
 
     //метолд для команды prep_show
@@ -85,6 +108,9 @@ public class PreparationManager {
         if (newFinalUnit != null) existing.setFinalUnit(newFinalUnit);
         if (newComment != null) existing.setComment(newComment);
         existing.setUpdatedAt(Instant.now());
+        if (storage != null) {
+            storage.savePreparation(existing);
+        }
     }
 
     public List<Preparation> getLastPreparationsForSolution(long solutionId, int limit) {

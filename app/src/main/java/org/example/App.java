@@ -12,8 +12,8 @@ import java.util.List;
 public class App {
     public static void main(String[] args) {
         // Создаем менеджеры
-        SolutionManager solutionManager = new SolutionManager();
-        PreparationManager preparationManager = new PreparationManager();
+        SolutionManager solutionManager = new SolutionManager(null);
+        PreparationManager preparationManager = new PreparationManager(null);
         BatchService batchService = new BatchService();
         PreparationComponentManager componentManager = new PreparationComponentManager(
                 preparationManager, batchService
