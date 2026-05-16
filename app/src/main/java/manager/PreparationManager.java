@@ -19,6 +19,11 @@ public class PreparationManager {
         this.storage = storage;
         loadFromStorage();
     }
+
+    public Storage getStorage() {
+        return storage;
+    }
+
     private void loadFromStorage() {
         if (storage != null) {
             preparations.clear();
@@ -48,6 +53,14 @@ public class PreparationManager {
     }
 
     public Preparation getPreparation(Long id) {
+        if (storage != null) {
+            Map<Long, Preparation> all = storage.loadAllPreparations();
+            Preparation prep = all.get(id);
+            if (prep == null) {
+                throw new IllegalArgumentException("Приготовление с id=" + id + " не найдено");
+            }
+            return prep;
+        }
         Preparation prep = preparations.get(id);
         if (prep == null) {
             throw new IllegalArgumentException("Приготовление с id=" + id + " не найдено");
@@ -80,6 +93,16 @@ public class PreparationManager {
 
     //метолд для команды prep_show
     public List<Preparation> getPreparationsForSolution(Long solutionId) {
+        if (storage != null) {
+            Map<Long, Preparation> all = storage.loadAllPreparations();
+            List<Preparation> result = new ArrayList<>();
+            for (Preparation p : all.values()) {
+                if (p.getSolutionId() == solutionId) {
+                    result.add(p);
+                }
+            }
+            return result;
+        }
         List<Preparation> result = new ArrayList<>();
         for (Preparation p : preparations.values()) {
             if (p.getSolutionId() == solutionId) {

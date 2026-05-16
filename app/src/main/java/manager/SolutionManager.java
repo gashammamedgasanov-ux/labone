@@ -21,6 +21,11 @@ public class SolutionManager {
         this.storage = storage;
         loadFromStorage();
     }
+
+    public Storage getStorage() {
+        return storage;
+    }
+
     private void loadFromStorage() {
         if (storage != null) {
             solutions.clear();
@@ -49,6 +54,14 @@ public class SolutionManager {
 
     //метолд для команды sol_show
     public Solution getSolution(Long id) {
+        if (storage != null) {
+            Map<Long, Solution> all = storage.loadAllSolutions();
+            Solution solution = all.get(id);
+            if (solution == null) {
+                throw new IllegalArgumentException("Раствор с id=" + id + " не найден");
+            }
+            return solution;
+        }
         if (solutions.get(id) == null) {
             throw new IllegalArgumentException("Раствор с id=" + id + " не найден");
         }
@@ -57,6 +70,10 @@ public class SolutionManager {
 
     // метод для команды sol_list
     public Map<Long, Solution> getAll() {
+        if (storage != null) {
+            // ВСЕГДА СВЕЖИЕ ДАННЫЕ ИЗ БД
+            return storage.loadAllSolutions();
+        }
         return Collections.unmodifiableMap(solutions);
     }
 
@@ -65,6 +82,7 @@ public class SolutionManager {
         if (existing == null) {
             throw new IllegalArgumentException("Раствор с таким id =" + id + " не сущeствует");
         }
+        String currentUser = existing.getOwnerUsername();
         Solution draftSolution = new Solution(
                 newName != null ? newName : existing.getName(),
                 newConcentration != null ? newConcentration : existing.getConcentration(),
@@ -77,6 +95,10 @@ public class SolutionManager {
         if (newUnit != null) existing.setConcentrationUnit(newUnit);
         if (newSolvent != null) existing.setSolvent(newSolvent);
         existing.setUpdatedAt(Instant.now());
+        if (storage != null) {
+            storage.saveSolution(existing);
+            solutions.put(existing.getId(), existing);
+        }
     }
 
     public void removeSolution(Long id, String currentUser) {

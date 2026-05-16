@@ -7,6 +7,9 @@ import java.time.Instant;
 import java.util.*;
 
 public class DatabaseStorage implements Storage {
+    public DatabaseStorage() {
+        createTablesIfNotExists();
+    }
 
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(
@@ -267,6 +270,70 @@ public class DatabaseStorage implements Storage {
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void createTablesIfNotExists() {
+        String sqlUsers = """
+        CREATE TABLE IF NOT EXISTS users (
+            id BIGINT PRIMARY KEY,
+            login VARCHAR(64) UNIQUE NOT NULL,
+            password_hash VARCHAR(256) NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            updated_at TIMESTAMP
+        )
+    """;
+
+        String sqlSolutions = """
+        CREATE TABLE IF NOT EXISTS solutions (
+            id BIGINT PRIMARY KEY,
+            name VARCHAR(128) NOT NULL,
+            concentration DOUBLE PRECISION NOT NULL,
+            concentration_unit VARCHAR(20) NOT NULL,
+            solvent VARCHAR(64),
+            owner_username VARCHAR(64) NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            updated_at TIMESTAMP
+        )
+    """;
+
+        String sqlPreparations = """
+        CREATE TABLE IF NOT EXISTS preparations (
+            id BIGINT PRIMARY KEY,
+            solution_id BIGINT NOT NULL,
+            final_quantity DOUBLE PRECISION NOT NULL,
+            final_unit VARCHAR(10) NOT NULL,
+            comment VARCHAR(128),
+            owner_username VARCHAR(64) NOT NULL,
+            prepared_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            updated_at TIMESTAMP
+        )
+    """;
+
+        String sqlComponents = """
+        CREATE TABLE IF NOT EXISTS preparation_components (
+            id BIGINT PRIMARY KEY,
+            preparation_id BIGINT NOT NULL,
+            batch_id BIGINT NOT NULL,
+            quantity DOUBLE PRECISION NOT NULL,
+            unit VARCHAR(10) NOT NULL,
+            created_at TIMESTAMP NOT NULL
+        )
+    """;
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            stmt.execute(sqlUsers);
+            stmt.execute(sqlSolutions);
+            stmt.execute(sqlPreparations);
+            stmt.execute(sqlComponents);
+
+            System.out.println("Таблицы созданы/проверены");
+
+        } catch (SQLException e) {
+            System.err.println("Ошибка создания таблиц: " + e.getMessage());
         }
     }
 }

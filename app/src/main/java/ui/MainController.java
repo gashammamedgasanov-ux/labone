@@ -17,6 +17,7 @@ import manager.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 public class MainController {
 
@@ -175,10 +176,15 @@ public class MainController {
     }
 
     public void refreshSolutions() {
-        solutions.clear();
-        solutions.addAll(solutionManager.getAll().values());
-        solutionsTable.refresh();
-    }
+            solutions.clear();
+            if (solutionManager.getStorage() != null) {
+                // ВСЕГДА ИЗ БД
+                solutions.addAll(solutionManager.getStorage().loadAllSolutions().values());
+            } else {
+                solutions.addAll(solutionManager.getAll().values());
+            }
+            solutionsTable.refresh();
+        }
 
     private void showSolutionDetails(Solution s) {
         txtName.setText(s.getName());
@@ -496,23 +502,38 @@ public class MainController {
     //общие команды:
     @FXML
     private void handleRefresh() {
-        if (lastUsedFilePath != null) {
-            boolean success = mainApp.loadData(lastUsedFilePath);
-            if (!success) {
-                showAlert("Ошибка", "Не удалось загрузить данные из файла");
-                return;
+        try {
+            if (solutionManager.getStorage() != null) {
+                // ПРЯМАЯ ЗАГРУЗКА ИЗ БД
+                Map<Long, Solution> freshSolutions = solutionManager.getStorage().loadAllSolutions();
+                solutions.clear();
+                solutions.addAll(freshSolutions.values());
+
+                if (currentSolution != null) {
+                    Map<Long, Preparation> freshPreparations = preparationManager.getStorage().loadAllPreparations();
+                    preparations.clear();
+                    for (Preparation p : freshPreparations.values()) {
+                        if (p.getSolutionId() == currentSolution.getId()) {
+                            preparations.add(p);
+                        }
+                    }
+                }
+            } else {
+                refreshSolutions();
             }
-        } else {
-            showAlert("Инфо", "Сначала загрузите файл через кнопку 'Загрузить'");
-            return;
+
+            solutionsTable.refresh();
+            preparationsTable.refresh();
+            components.clear();
+            clearDetails();
+            currentSolution = null;
+            currentPreparation = null;
+
+            showAlert("Инфо", "Данные обновлены из базы данных");
+
+        } catch (Exception e) {
+            showAlert("Ошибка", "Не удалось обновить: " + e.getMessage());
         }
-        refreshSolutions();
-        clearDetails();
-        preparations.clear();
-        components.clear();
-        currentSolution = null;
-        currentPreparation = null;
-        showAlert("Инфо", "Данные обновлены из файла: " + lastUsedFilePath);
     }
 
     @FXML
