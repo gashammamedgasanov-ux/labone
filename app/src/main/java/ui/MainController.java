@@ -13,6 +13,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import java.io.File;
+
+import javafx.stage.Stage;
 import manager.*;
 
 import java.time.Instant;
@@ -81,7 +83,41 @@ public class MainController {
     private Solution currentSolution = null;
     private Preparation currentPreparation = null;
     private String lastUsedFilePath;
+    private Stage primaryStage;
 
+    private void refreshAllFromDatabase() {
+        try {
+            // Обновляем растворы
+            Map<Long, Solution> freshSolutions = solutionManager.getStorage().loadAllSolutions();
+            solutions.clear();
+            solutions.addAll(freshSolutions.values());
+            solutionsTable.refresh();
+
+            // Обновляем приготовления
+            if (currentSolution != null) {
+                Map<Long, Preparation> freshPreps = preparationManager.getStorage().loadAllPreparations();
+                preparations.clear();
+                freshPreps.values().stream()
+                        .filter(p -> p.getSolutionId() == currentSolution.getId())
+                        .forEach(preparations::add);
+                preparationsTable.refresh();
+            }
+
+            System.out.println("Синхронизация выполнена");
+
+        } catch (Exception e) {
+            System.err.println("Ошибка синхронизации: " + e.getMessage());
+        }
+    }
+
+    public void setPrimaryStage(Stage stage) {
+        this.primaryStage = stage;
+        stage.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal && solutionManager.getStorage() != null) {
+                refreshAllFromDatabase();
+            }
+        });
+    }
     @FXML
     public void initialize() {
         // Настройка таблицы растворов

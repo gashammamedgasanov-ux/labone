@@ -96,6 +96,7 @@ public class MainApp extends Application {
             controller.setManagers(solutionManager, preparationManager, componentManager);
             controller.setUserManager(userManager);
             controller.setMainApp(this);
+            controller.setPrimaryStage(primaryStage);
 
             Scene scene = new Scene(root, 1000, 700);
             primaryStage.setScene(scene);
