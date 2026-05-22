@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ui.MainController">
+
+    <top>
+        <HBox spacing="10" style="-fx-padding: 10; -fx-background-color: #f0f0f0;">
+            <Button text="Добавить раствор" onAction="#handleAddSolution"/>
+            <Button text="Редактировать" onAction="#handleUpdateSolution"/>
+            <Button text="Удалить раствор" onAction="#handleDeleteSolution"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Обновить" onAction="#handleRefresh"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Сохранить" onAction="#handleSave"/>
+            <Button text="Загрузить" onAction="#handleLoad"/>
+            <Button text="Сохранить в текущий файл" onAction="#handleQuickSave"/>
+        </HBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.35">
+
+            <!-- Левая панель: список растворов -->
+            <VBox spacing="10" style="-fx-padding: 10;">
+                <Label text="📋 РАСТВОРЫ" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                <TableView fx:id="solutionsTable">
+                    <columns>
+                        <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
+                        <TableColumn fx:id="colName" text="Название" prefWidth="180"/>
+                        <TableColumn fx:id="colConcentration" text="Конц." prefWidth="70"/>
+                        <TableColumn fx:id="colUnit" text="Ед." prefWidth="60"/>
+                        <TableColumn fx:id="colSolvent" text="Растворитель" prefWidth="100"/>
+                        <TableColumn fx:id="colOwner" text="Владелец" prefWidth="100"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Правая панель: вкладки -->
+            <VBox spacing="10" style="-fx-padding: 10;">
+                <TabPane>
+
+
+                    <Tab text="Детали раствора" closable="false">
+                        <GridPane hgap="10" vgap="10" style="-fx-padding: 15;">
+                            <Label text="Название:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="txtName" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="250"/>
+
+                            <Label text="Концентрация:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="txtConcentration" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                            <Label text="Единицы:" GridPane.columnIndex="0" GridPane.rowIndex="2" style="-fx-font-weight: bold;"/>
+                            <ComboBox fx:id="cmbUnit" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="150"/>
+
+                            <Label text="Растворитель:" GridPane.columnIndex="0" GridPane.rowIndex="3" style="-fx-font-weight: bold;"/>
+                            <TextField fx:id="txtSolvent" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                            <Label text="Создан:" GridPane.columnIndex="0" GridPane.rowIndex="5" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="lblCreatedAt" GridPane.columnIndex="1" GridPane.rowIndex="5" text="-"/>
+
+                            <Label text="Обновлен:" GridPane.columnIndex="0" GridPane.rowIndex="6" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="lblUpdatedAt" GridPane.columnIndex="1" GridPane.rowIndex="6" text="-"/>
+                        </GridPane>
+                    </Tab>
+
+
+                    <Tab text="Приготовления" closable="false">
+                        <VBox spacing="10" style="-fx-padding: 10;">
+                            <Label text="Приготовления для выбранного раствора" style="-fx-font-weight: bold;"/>
+
+                            <HBox spacing="10">
+                                <Label text="Количество:"/>
+                                <TextField fx:id="txtPrepQty" prefWidth="80"/>
+                                <ComboBox fx:id="cmbPrepUnit" prefWidth="60"/>
+                                <Label text="Комментарий:"/>
+                                <TextField fx:id="txtPrepComment" prefWidth="200"/>
+                                <Button text="Добавить" onAction="#handleAddPreparation"/>
+                                <Button text="Удалить" onAction="#handleDeletePreparation"/>
+                            </HBox>
+
+                            <!-- Форма редактирования -->
+                            <HBox spacing="10">
+                                <Label text="Редактировать выбранное:"/>
+                                <TextField fx:id="txtEditPrepQty" prefWidth="80" promptText="Новое количество"/>
+                                <ComboBox fx:id="cmbEditPrepUnit" prefWidth="60"/>
+                                <TextField fx:id="txtEditPrepComment" prefWidth="200" promptText="Новый комментарий"/>
+                                <Button text="Редактировать" onAction="#handleEditPreparation"/>
+                                <Button text="Удалить" onAction="#handleDeletePreparation"/>
+                            </HBox>
+
+                            <TableView fx:id="preparationsTable">
+                                <columns>
+                                    <TableColumn fx:id="colPrepId" text="ID" prefWidth="60"/>
+                                    <TableColumn fx:id="colPrepQty" text="Количество" prefWidth="100"/>
+                                    <TableColumn fx:id="colPrepUnit" text="Ед." prefWidth="60"/>
+                                    <TableColumn fx:id="colPrepDate" text="Дата" prefWidth="170"/>
+                                    <TableColumn fx:id="colPrepComment" text="Комментарий" prefWidth="200"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </Tab>
+
+
+                    <Tab text="Компоненты" closable="false">
+                        <VBox spacing="10" style="-fx-padding: 10;">
+                            <Label text="Компоненты выбранного приготовления" style="-fx-font-weight: bold;"/>
+
+                            <HBox spacing="10">
+                                <Label text="ID партии:"/>
+                                <TextField fx:id="txtCompBatchId" prefWidth="80"/>
+                                <Label text="Количество:"/>
+                                <TextField fx:id="txtCompQty" prefWidth="80"/>
+                                <ComboBox fx:id="cmbCompUnit" prefWidth="60"/>
+                                <Button text="Добавить" onAction="#handleAddComponent"/>
+                                <Button text="Удалить" onAction="#handleDeleteComponent"/>
+                            </HBox>
+
+                            <!-- Форма редактирования -->
+                            <HBox spacing="10">
+                                <Label text="Редактировать выбранный:"/>
+                                <TextField fx:id="txtEditCompBatchId" prefWidth="80" promptText="Новый ID партии"/>
+                                <TextField fx:id="txtEditCompQty" prefWidth="80" promptText="Новое количество"/>
+                                <ComboBox fx:id="cmbEditCompUnit" prefWidth="60"/>
+                                <Button text="Редактировать" onAction="#handleEditComponent"/>
+                                <Button text="Удалить" onAction="#handleDeleteComponent"/>
+                            </HBox>
+
+
+
+                            <TableView fx:id="componentsTable">
+                                <columns>
+                                    <TableColumn fx:id="colCompId" text="ID" prefWidth="60"/>
+                                    <TableColumn fx:id="colCompBatchId" text="ID партии" prefWidth="80"/>
+                                    <TableColumn fx:id="colCompQty" text="Количество" prefWidth="100"/>
+                                    <TableColumn fx:id="colCompUnit" text="Ед." prefWidth="60"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </Tab>
+                </TabPane>
+            </VBox>
+        </SplitPane>
+    </center>
+</BorderPane>

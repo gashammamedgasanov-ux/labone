@@ -1,0 +1,38 @@
+{
+  "solutions" : {
+    "1" : {
+      "id" : 1,
+      "createdAt" : 1774578023.853297000,
+      "updatedAt" : 1774578023.853300000,
+      "name" : "fecor",
+      "concentration" : 45.0,
+      "concentrationUnit" : "PERCENT",
+      "solvent" : "water",
+      "ownerUsername" : "faku"
+    }
+  },
+  "preparations" : {
+    "1" : {
+      "id" : 1,
+      "createdAt" : 1774707215.348118000,
+      "updatedAt" : 1774707215.348144000,
+      "solutionId" : 1,
+      "finalQuantity" : 56.0,
+      "finalUnit" : "G",
+      "comment" : "арпоарпоароа",
+      "ownerUsername" : "SYSTEM",
+      "preparedAt" : 1774707215.345409000
+    }
+  },
+  "components" : {
+    "1" : {
+      "id" : 1,
+      "createdAt" : 1774707231.130131000,
+      "updatedAt" : 1774707231.128866000,
+      "preparationId" : 1,
+      "batchId" : 23,
+      "quantity" : 56.0,
+      "unit" : "G"
+    }
+  }
+}
