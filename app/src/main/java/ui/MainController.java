@@ -13,6 +13,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import java.io.File;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+import javafx.application.Platform;
 
 import javafx.stage.Stage;
 import manager.*;
@@ -84,6 +88,9 @@ public class MainController {
     private Preparation currentPreparation = null;
     private String lastUsedFilePath;
     private Stage primaryStage;
+    private Timeline realTimeSyncTimer;
+    private int lastSolutionCount = 0;
+    private int lastPreparationCount = 0;
 
     private void refreshAllFromDatabase() {
         try {
@@ -117,7 +124,80 @@ public class MainController {
                 refreshAllFromDatabase();
             }
         });
+        startRealTimeSync();
     }
+    private void startRealTimeSync() {
+        updateCounts();
+
+        realTimeSyncTimer = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
+            checkForRealTimeUpdates();
+        }));
+        realTimeSyncTimer.setCycleCount(Timeline.INDEFINITE);
+        realTimeSyncTimer.play();
+
+        System.out.println("Real-time синхронизация запущена (каждые 3 сек)");
+    }
+
+    private void updateCounts() {
+        if (solutionManager != null && solutionManager.getStorage() != null) {
+            try {
+                lastSolutionCount = solutionManager.getStorage().loadAllSolutions().size();
+                lastPreparationCount = preparationManager.getStorage().loadAllPreparations().size();
+            } catch (Exception e) {
+                // игнорируем
+            }
+        } else {
+            lastSolutionCount = solutions.size();
+            lastPreparationCount = preparations.size();
+        }
+    }
+
+    private void checkForRealTimeUpdates() {
+        if (solutionManager == null || solutionManager.getStorage() == null) return;
+
+        try {
+            int currentSolutionCount = solutionManager.getStorage().loadAllSolutions().size();
+            int currentPreparationCount = preparationManager.getStorage().loadAllPreparations().size();
+
+            boolean solutionsChanged = currentSolutionCount != lastSolutionCount;
+            boolean preparationsChanged = currentPreparationCount != lastPreparationCount;
+
+            if (solutionsChanged || preparationsChanged) {
+                performRealTimeUpdate();
+                updateCounts();
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    private void performRealTimeUpdate() {
+        Platform.runLater(() -> {
+            try {
+                if (solutionManager.getStorage() != null) {
+                    // Обновляем растворы
+                    Map<Long, Solution> freshSolutions = solutionManager.getStorage().loadAllSolutions();
+                    solutions.clear();
+                    solutions.addAll(freshSolutions.values());
+                    solutionsTable.refresh();
+
+                    // Обновляем приготовления
+                    if (currentSolution != null) {
+                        Map<Long, Preparation> freshPreps = preparationManager.getStorage().loadAllPreparations();
+                        preparations.clear();
+                        freshPreps.values().stream()
+                                .filter(p -> p.getSolutionId() == currentSolution.getId())
+                                .forEach(preparations::add);
+                        preparationsTable.refresh();
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Ошибка real-time обновления: " + e.getMessage());
+            }
+        });
+    }
+
+
+
     @FXML
     public void initialize() {
         // Настройка таблицы растворов
@@ -197,6 +277,11 @@ public class MainController {
                 }
         );
     }
+
+
+
+
+
 
     public void setManagers(SolutionManager sm, PreparationManager pm, PreparationComponentManager cm) {
         this.solutionManager = sm;
